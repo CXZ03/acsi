@@ -40,7 +40,7 @@ do
     
     total=$(awk "BEGIN {print $free + $buff + $cache}")
     used=$(awk "BEGIN {print $buff + $cache}")
-    percent_used=$(awk "BEGIN {printf \"%.4f\", ($used / $total) * 100}")
+    percent_used=$(LC_NUMERIC=C awk "BEGIN {printf \"%.4f\", ($used / $total) * 100}")
 
     # Guardar en csv
     echo "$i,$timestamp,$global,$used,$percent_used" >> $output_file
