@@ -1,5 +1,4 @@
 #!/bin/bash
-
 # Nombre del archivo de salida
 monitoring_time=${1:-7200}          # Primer parámetro o 7200 segundos (120 min)
 time_interval=${2:-5}               # Segundo parámetro o 5 segundos

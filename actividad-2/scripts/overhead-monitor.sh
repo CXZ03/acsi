@@ -1,6 +1,5 @@
 #!/bin/bash
 monitor_name=${1:-"parallel-monitor.sh"}
-
 # Calcula el overhead del monitor a ejecutar y hace print usando time
 { time bash $monitor_name $2 $3 $4; } 2> time_output.txt
 

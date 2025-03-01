@@ -1,6 +1,5 @@
 #!/bin/bash
-
-# Nombre del archivo de salida
+# Nombre del archivo de salida 
 monitoring_time=${1:-5400}          # Primer parámetro o 5400 segundos (90 min)
 time_interval=${2:-5}               # Segundo parámetro o 5 segundos
 output_file=${3:-"cpu_stats.csv"}   # Pone Nombre archivo o "cpu_stats.csv" por defecto
