@@ -30,8 +30,8 @@ do
     idle=$(echo "$top_output" | awk -F '[,:]' '{print $5}' | awk '{print $1}')
 
     # Calcular uso global de CPU (100 - idle)
-    global=$(awk "BEGIN {print 100 - $idle}")
-    
+    global=$(echo "100 - $idle" | bc)
+
     # Guardar en csv
     echo "$i,$timestamp,$global,$user,$system" >> $output_file
 
