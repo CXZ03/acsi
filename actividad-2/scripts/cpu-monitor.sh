@@ -19,7 +19,7 @@ if [ -f $output_file ]; then
 fi
 
 # Añadir encabezado al archivo CSV
-echo "ID,Timestamp,%CPU (global)" > $output_file
+echo "ID,Timestamp,%CPU (global), %CPU (user), %CPU(system)" > $output_file
 
 for (( i = 0; i < $num_samples; i++ )) 
 do
