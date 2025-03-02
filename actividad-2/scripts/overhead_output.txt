@@ -1,8 +1,0 @@
---- Monitor: paralel-monitor.sh ---
-Real: 127m8.132s
-User: 1m6.891s
-Sys: 1m32.515s
---- Overhead ---
-Tiempo de ejecución: 7628.132 seconds
-Tiempo de ejecución del monitor: 159.406 seconds
-Overhead: 2.08971200 %
