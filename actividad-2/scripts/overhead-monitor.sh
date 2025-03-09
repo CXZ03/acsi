@@ -1,7 +1,10 @@
 #!/bin/bash
-monitor_name=${1:-"parallel-monitor.sh"}
+output_file=${1:-"overhead_output.txt"}
+monitor_name=${2:-"parallel-monitor.sh"}
+shift 2
+
 # Calcula el overhead del monitor a ejecutar y hace print usando time
-{ time bash $monitor_name $2 $3 $4; } 2> time_output.txt
+{ time bash "$monitor_name" "$@"; } 2> time_output.txt
 
 # Extrae el tiempo de ejecución del monitor
 real=$(grep "real" time_output.txt | awk '{print $2}')
@@ -13,7 +16,6 @@ echo "Real: $real"
 echo "User: $user"
 echo "Sys: $sys"
 
-# Convert to seconds (assuming format like 0m3.585s)
 real_seconds=$(echo "$real" | sed 's/m/*60+/;s/s//' | bc)
 user_seconds=$(echo "$user" | sed 's/m/*60+/;s/s//' | bc)
 sys_seconds=$(echo "$sys"   | sed 's/m/*60+/;s/s//' | bc)
@@ -26,10 +28,10 @@ echo "Tiempo de ejecución: $real_seconds seconds"
 echo "Tiempo de ejecución del monitor: $ejecucion seconds"
 echo "Overhead: $overhead %"
 
-echo "--- Overhead ---" > overhead_output.txt
-echo "Tiempo de ejecución: $real_seconds seconds" >> overhead_output.txt
-echo "Tiempo de ejecución del monitor: $ejecucion seconds" >> overhead_output.txt
-echo "Overhead: $overhead %" >> overhead_output.txt
+echo "--- Overhead ---" > "$output_file"
+echo "Tiempo de ejecución: $real_seconds seconds" >> "$output_file"
+echo "Tiempo de ejecución del monitor: $ejecucion seconds" >> "$output_file"
+echo "Overhead: $overhead %" >> "$output_file"
 
 # Clean up
 rm time_output.txt
