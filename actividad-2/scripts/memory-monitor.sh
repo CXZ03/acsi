@@ -33,11 +33,11 @@ do
     cache=$(echo "$top_output" | awk '{print $6}')
     
     disponible=$(awk "BEGIN {print $free + $buff + $cache}")
-    used=$(awk "BEGIN {print $buff + $cache}")
+    used=$(awk "BEGIN {print $total - $disponible}")
     percent_used=$(LC_NUMERIC=C awk "BEGIN {printf \"%.4f\", ($used / $total) * 100}")
     
     # Guardar en csv
-    echo "$i,$timestamp,$free,$used,$percent_used" >> $output_file
+    echo "$i,$timestamp,$disponible,$used,$percent_used" >> $output_file
 
     
     # Indicar % de muestra completada
