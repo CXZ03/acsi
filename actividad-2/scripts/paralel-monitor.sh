@@ -20,6 +20,8 @@ fi
 # Añadir encabezado al archivo CSV
 echo "ID,Timestamp,%CPU (global),Capacidad de memoria utilizada,% Memoria utilizada" > $output_file
 
+total=$(vmstat -s | awk 'NR==1' | awk '{print $1}')
+
 for (( i = 0; i < $num_samples; i++ )) 
 do
     
@@ -37,8 +39,8 @@ do
     buff=$(echo "$top_output" | awk '{print $5}')
     cache=$(echo "$top_output" | awk '{print $6}')
     
-    total=$(awk "BEGIN {print $free + $buff + $cache}")
-    used=$(awk "BEGIN {print $buff + $cache}")
+    disponible=$(awk "BEGIN {print $free + $buff + $cache}")
+    used=$(awk "BEGIN {print $total - $disponible}")
     percent_used=$(LC_NUMERIC=C awk "BEGIN {printf \"%.4f\", ($used / $total) * 100}")
 
     # Guardar en csv
