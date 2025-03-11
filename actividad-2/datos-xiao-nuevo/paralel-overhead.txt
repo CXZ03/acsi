@@ -1,4 +1,4 @@
 --- Overhead ---
-Tiempo de ejecución: 7606.388 seconds
-Tiempo de ejecución del monitor: 134.741 seconds
-Overhead: 1.77141800 %
+Tiempo de ejecución: 7606.755 seconds
+Tiempo de ejecución del monitor: 132.320 seconds
+Overhead: 1.73950600 %
