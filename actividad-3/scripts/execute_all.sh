@@ -1,6 +1,6 @@
 #!/bin/bash
 
-threads="1 2 4 6"
+threads="1 2 4 6 12"
 loads="25000 50000 75000"
 time_interval=1
 
