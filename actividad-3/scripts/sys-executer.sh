@@ -26,46 +26,54 @@ if [ -z "$time_interval" ]; then
     time_interval=5
 fi
 
+# 5. Number of rounds
+rounds=$4
+if [ -z "$rounds" ]; then
+    rounds=1
+fi
+
 # Doble for para recorrer las cargas y los hilos
-for thread in "${threads[@]}"; do
-    # Create thread directory
-    thread_dir="thread_${thread}"
-    mkdir -p "$thread_dir"
-    
-    for load in "${loads[@]}"; do
-        # Create load directory
-        load_dir="${thread_dir}/load_${load}"
-        mkdir -p "$load_dir"
+for round in $(seq 1 $rounds); do
+    for thread in "${threads[@]}"; do
+        # Create thread directory
+        thread_dir="thread_${thread}_round_${round}"
+        mkdir -p "$thread_dir"
         
-        file_name="${load_dir}/${file}_${load}_${thread}.csv"
-        overhead_name="${load_dir}/${file}_${load}_${thread}_overhead.txt"
+        for load in "${loads[@]}"; do
+            # Create load directory
+            load_dir="${thread_dir}/load_${load}"
+            mkdir -p "$load_dir"
+            
+            file_name="${load_dir}/${file}_${load}_${thread}.csv"
+            overhead_name="${load_dir}/${file}_${load}_${thread}_overhead.txt"
 
-        file_monitor="${load_dir}/${file}_${load}_${thread}_monitor.csv"
+            file_monitor="${load_dir}/${file}_${load}_${thread}_monitor.csv"
 
-        # Setup trap to kill monitor process if script is interrupted
-        cleanup() {
-            echo "Interrupted. Cleaning up monitoring process..."
-            if [ ! -z "$MONITOR_PID" ]; then
-                kill $MONITOR_PID 2>/dev/null
-                wait $MONITOR_PID 2>/dev/null
-            fi
-            exit 1
-        }
-        trap cleanup SIGINT SIGTERM
+            # Setup trap to kill monitor process if script is interrupted
+            cleanup() {
+                echo "Interrupted. Cleaning up monitoring process..."
+                if [ ! -z "$MONITOR_PID" ]; then
+                    kill $MONITOR_PID 2>/dev/null
+                    wait $MONITOR_PID 2>/dev/null
+                fi
+                exit 1
+            }
+            trap cleanup SIGINT SIGTERM
 
-        echo "Iniciar monitoreo..."
-        bash paralel-monitor.sh $time_interval $file_monitor &
-        MONITOR_PID=$!
+            echo "Iniciar monitoreo..."
+            bash paralel-monitor.sh $time_interval $file_monitor &
+            MONITOR_PID=$!
 
-        echo "Ejecutando sysbench con carga $load y $thread hilos..."
-        bash overhead-monitor.sh $overhead_name sys-metrics.sh $file_name $load $thread
+            echo "Ejecutando sysbench con carga $load y $thread hilos..."
+            bash overhead-monitor.sh $overhead_name sys-metrics.sh $file_name $load $thread
 
-        echo "Finalizar monitoreo..."
-        # Una vez terminado overhead-monitor, terminamos paralel-monitor
-        kill $MONITOR_PID 2>/dev/null
-        wait $MONITOR_PID 2>/dev/null
-        
-        # Reset trap
-        trap - SIGINT SIGTERM
+            echo "Finalizar monitoreo..."
+            # Una vez terminado overhead-monitor, terminamos paralel-monitor
+            kill $MONITOR_PID 2>/dev/null
+            wait $MONITOR_PID 2>/dev/null
+            
+            # Reset trap
+            trap - SIGINT SIGTERM
+        done
     done
 done
