@@ -1,0 +1,2 @@
+timestamp,load,threads,total_threads,events_seconds,total_time,latency_min,latency_avg,latency_max,latency_95th,latency_sum,events_avg,events_stddev,execution_time_avg,execution_time_stddev
+2025-03-29 03:30:49.519,37500,3,8,561.48,66.7869,5.22,5.34,7.24,5.37,200347.74,12500.0000,1.41,66.7826,0.00

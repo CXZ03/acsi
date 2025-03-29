@@ -1,7 +1,7 @@
 #!/bin/bash
 
-threads="1 2 4 6 8"
-loads="12500 25000 37500 50000 62500 75000"
+threads="1"
+loads="12500"
 time_interval=1
 rounds=5
 
