@@ -1,0 +1,60 @@
+ 
+  SIMULOG   ***  QNAP2  ***  ( 28-02-1999  ) V 9.4   
+  (C)  COPYRIGHT BY CII HONEYWELL BULL AND INRIA, 1986
+ 
+ 
+      1 /DECLARE/ QUEUE CPU,DISC(2),TERMINAL;
+      2           REAL PROB1(2)=(7.,1.);
+      3           REAL TTR1,TOTAL,WORK;
+      4           INTEGER I,N1;
+      5 /STATION/ NAME=CPU;
+      6 &         SCHED=PS;
+      7           SERVICE=EXP(0.0025);
+      8           TRANSIT=DISC,PROB1,TERMINAL,1;
+      9 /STATION/ NAME=DISC;
+     10           TRANSIT=CPU;
+     11 /STATION/ NAME=DISC(1);
+     12           SERVICE=EXP(0.02);
+     13 /STATION/ NAME=DISC(2);
+     14           SERVICE=EXP(0.3);
+     15 /STATION/ NAME=TERMINAL;
+     16           TYPE=INFINITE;
+     17           INIT=N1;
+     18           SERVICE=EXP(8.);
+     19           TRANSIT=CPU;
+     20 /CONTROL/ CLASS=ALL QUEUE;
+     21 /EXEC/    FOR N1:=20 STEP 10 UNTIL 20 DO
+     22           BEGIN
+     23             PRINT;
+     24             PRINT("NUMERO DE USUARIOS=",N1);
+     25             SOLVE;
+     26           END;
+ 
+1
+ NUMERO DE USUARIOS=       20 
+ - MEAN VALUE ANALYSIS ("MVA") -
+ *******************************************************************
+ *   NAME   *  SERVICE * BUSY PCT *  CUST NB * RESPONSE *  THRUPUT *
+ *******************************************************************
+ *          *          *          *          *          *          *
+ *CPU       *0.2500E-02*0.5017E-01*0.5269E-01*0.2626E-02* 20.07    *
+ *          *          *          *          *          *          *
+ *DISC   1  *0.2000E-01*0.3122    *0.4413    *0.2827E-01* 15.61    *
+ *          *          *          *          *          *          *
+ *DISC   2  *0.3000    *0.6690    * 1.667    *0.7475    * 2.230    *
+ *          *          *          *          *          *          *
+ *TERMINAL  * 8.000    *0.0000E+00* 17.84    * 8.000    * 2.230    *
+ *          *          *          *          *          *          *
+ *******************************************************************
+              MEMORY USED:       7088 WORDS OF 4 BYTES
+               (  0.14  % OF TOTAL MEMORY)
+     27 /END/
+
+# C. Cambiad  la  velocidad  del  procesador  por  uno  el  doble  de  rápido, 
+¿varían  mucho  los resultados? ¿Por qué?
+
+Tras aumentar la velocidad del procesador, podemos observar como el procesador 
+realiza sus tareas al doble de performance, pero, a pesar de ello, el throughput
+del sistema no se ve prácticamente afectado, dado que la CPU no es el cuello de 
+botella, sino que el cuello de botella viene dado por posiblemente los discos, 
+al ser estos, los mas lentos del sistema.

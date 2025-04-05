@@ -1,0 +1,25 @@
+/DECLARE/ QUEUE CPU,DISC,TERMINAL;
+          REAL TTR1,TOTAL,WORK;
+          INTEGER I,N1;
+/STATION/ NAME=CPU;
+&         SCHED=PS;
+          SERVICE=EXP(0.005);
+          TRANSIT=DISC,1,TERMINAL,1;
+/STATION/ NAME=DISC;
+          TRANSIT=CPU;
+          SERVICE=EXP(0.02);
+/STATION/ NAME=TERMINAL;
+          TYPE=INFINITE;
+          INIT=N1;
+          SERVICE=EXP(8.);
+          TRANSIT=CPU;
+/CONTROL/ CLASS=ALL QUEUE;
+/EXEC/    FOR N1:=20 STEP 10 UNTIL 20 DO
+          BEGIN
+            PRINT;
+            PRINT("NUMERO DE USUARIOS=",N1);
+            TTR1:=0.005*N1+0.02*N1+8.;
+            PRINT("TTR=",TTR1);
+            SOLVE;
+          END;
+/END/

@@ -1,0 +1,67 @@
+ 
+  SIMULOG   ***  QNAP2  ***  ( 28-02-1999  ) V 9.4   
+  (C)  COPYRIGHT BY CII HONEYWELL BULL AND INRIA, 1986
+ 
+ 
+      1 /DECLARE/ QUEUE CPU,DISC(2),TERMINAL;
+      2           REAL PROB1(2)=(7.,3.);
+      3           REAL TTR1,TOTAL,WORK;
+      4           INTEGER I,N1;
+      5 /STATION/ NAME=CPU;
+      6 &         SCHED=PS;
+      7           SERVICE=EXP(0.005);
+      8           TRANSIT=DISC,PROB1,TERMINAL,1;
+      9 /STATION/ NAME=DISC;
+     10           TRANSIT=CPU;
+     11 /STATION/ NAME=DISC(1);
+     12           SERVICE=EXP(0.02);
+     13 /STATION/ NAME=DISC(2);
+     14           SERVICE=EXP(0.02);
+     15 /STATION/ NAME=TERMINAL;
+     16           TYPE=INFINITE;
+     17           INIT=N1;
+     18           SERVICE=EXP(8.);
+     19           TRANSIT=CPU;
+     20 /CONTROL/ CLASS=ALL QUEUE;
+     21 /EXEC/    FOR N1:=20 STEP 10 UNTIL 20 DO
+     22           BEGIN
+     23             PRINT;
+     24             PRINT("NUMERO DE USUARIOS=",N1);
+     25             SOLVE;
+     26           END;
+ 
+1
+ NUMERO DE USUARIOS=       20 
+ - MEAN VALUE ANALYSIS ("MVA") -
+ *******************************************************************
+ *   NAME   *  SERVICE * BUSY PCT *  CUST NB * RESPONSE *  THRUPUT *
+ *******************************************************************
+ *          *          *          *          *          *          *
+ *CPU       *0.5000E-02*0.1320    *0.1507    *0.5711E-02* 26.39    *
+ *          *          *          *          *          *          *
+ *DISC   1  *0.2000E-01*0.3359    *0.4882    *0.2907E-01* 16.80    *
+ *          *          *          *          *          *          *
+ *DISC   2  *0.2000E-01*0.1440    *0.1666    *0.2314E-01* 7.198    *
+ *          *          *          *          *          *          *
+ *TERMINAL  * 8.000    *0.0000E+00* 19.19    * 8.000    * 2.399    *
+ *          *          *          *          *          *          *
+ *******************************************************************
+              MEMORY USED:       7088 WORDS OF 4 BYTES
+               (  0.14  % OF TOTAL MEMORY)
+     27 /END/
+
+# G. Volved a vuestro modelo original y cread otro disco gemelo al original (el 
+de 7 visitas) y pasadle 3 visitas al disco gemelo, ¿qué variaciones se observan 
+en los cálculos, con respecto a tener dos discos del modelo original?
+
+Como podemos ver el throughput de la cpu ha aumentado respecto el original, 
+reflejando la conclusión dicha anteriormente de que el cpu no es el cuello de 
+botella. Y al mejorar el rendimiento del segundo cpu podemos ver claramente una 
+mejora de throughput en ambas, también se obseva que el disco 1 tiene mayor busy
+time respecto el disco 1 del original, esto es por que al tener el disco 2 más 
+rápido, se acumula más peticiones en la cola del cpu y este al restribuilos con 
+la proporción 70/30, se va acumulando cada vez más peticiones en el disco 1. Y 
+otro hecho que refleja el mayor utilización de la cpu, es que haya menos cola en 
+el terminal dado que el cpu tiene que procesar una mayor carga de los discos, y 
+por ende, envia ligeramente una menor cantidad de peticiones en la cola del 
+terminal.

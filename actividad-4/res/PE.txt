@@ -1,0 +1,62 @@
+ 
+  SIMULOG   ***  QNAP2  ***  ( 28-02-1999  ) V 9.4   
+  (C)  COPYRIGHT BY CII HONEYWELL BULL AND INRIA, 1986
+ 
+ 
+      1 /DECLARE/ QUEUE CPU,DISC(2),TERMINAL;
+      2           REAL PROB1(2)=(5.,5.);
+      3           REAL TTR1,TOTAL,WORK;
+      4           INTEGER I,N1;
+      5 /STATION/ NAME=CPU;
+      6 &         SCHED=PS;
+      7           SERVICE=EXP(0.005);
+      8           TRANSIT=DISC,PROB1,TERMINAL,1;
+      9 /STATION/ NAME=DISC;
+     10           TRANSIT=CPU;
+     11 /STATION/ NAME=DISC(1);
+     12           SERVICE=EXP(0.02);
+     13 /STATION/ NAME=DISC(2);
+     14           SERVICE=EXP(0.3);
+     15 /STATION/ NAME=TERMINAL;
+     16           TYPE=INFINITE;
+     17           INIT=N1;
+     18           SERVICE=EXP(8.);
+     19           TRANSIT=CPU;
+     20 /CONTROL/ CLASS=ALL QUEUE;
+     21 /EXEC/    FOR N1:=20 STEP 10 UNTIL 20 DO
+     22           BEGIN
+     23             PRINT;
+     24             PRINT("NUMERO DE USUARIOS=",N1);
+     25             SOLVE;
+     26           END;
+ 
+1
+ NUMERO DE USUARIOS=       20 
+ - MEAN VALUE ANALYSIS ("MVA") -
+ *******************************************************************
+ *   NAME   *  SERVICE * BUSY PCT *  CUST NB * RESPONSE *  THRUPUT *
+ *******************************************************************
+ *          *          *          *          *          *          *
+ *CPU       *0.5000E-02*0.3667E-01*0.3806E-01*0.5190E-02* 7.333    *
+ *          *          *          *          *          *          *
+ *DISC   1  *0.2000E-01*0.6667E-01*0.7143E-01*0.2143E-01* 3.333    *
+ *          *          *          *          *          *          *
+ *DISC   2  *0.3000    * 1.000    * 14.56    * 4.367    * 3.333    *
+ *          *          *          *          *          *          *
+ *TERMINAL  * 8.000    *0.0000E+00* 5.333    * 8.000    *0.6667    *
+ *          *          *          *          *          *          *
+ *******************************************************************
+              MEMORY USED:       7088 WORDS OF 4 BYTES
+               (  0.14  % OF TOTAL MEMORY)
+     27 /END/
+
+# E. Volved a vuestro modelo original y ahora equilibrad la E/S. ¿Qué ha pasado 
+con el rendimiento ahora? 
+
+Tras equilibrar la E/S con probabilidad 50% para cada una, podemos observar 
+como el rendimiento general del sistema ha disminuido, ya que
+el disco 2 es el mas lento y al equilibrar la E/S, le estamos dando
+más carga a dicho disco, lo que provoca que el rendimiento general del sistema
+sea menor. Además, en este caso, podemos ver como el segundo disco es
+incapaz de aguantar la carga de trabajo, ya que la tasa de ocupación
+es del 100%, lo que provocaría que el tiempo de respuesta fuera aún mayor.

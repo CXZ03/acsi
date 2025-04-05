@@ -1,0 +1,133 @@
+```
+  SIMULOG   ***  QNAP2  ***  ( 28-02-1999  ) V 9.4   
+  (C)  COPYRIGHT BY CII HONEYWELL BULL AND INRIA, 1986
+ 
+ 
+      1 /DECLARE/ QUEUE CPU,DISC(2),TERMINAL;
+      2           REAL PROB1(2)=(7.,1.);
+      3           REAL TTR1,TOTAL,WORK,V0,V1,V2,V3,S1,S2,S3,R1,R2,R3,X,RZ,R,Z,W;
+      4           INTEGER I,N1;
+      5 /STATION/ NAME=CPU;
+      6 &         SCHED=PS;
+      7           SERVICE=EXP(0.005);
+      8           TRANSIT=DISC,PROB1,TERMINAL,1;
+      9 /STATION/ NAME=DISC;
+     10           TRANSIT=CPU;
+     11 /STATION/ NAME=DISC(1);
+     12           SERVICE=EXP(0.02);
+     13 /STATION/ NAME=DISC(2);
+     14           SERVICE=EXP(0.3);
+     15 /STATION/ NAME=TERMINAL;
+     16           TYPE=INFINITE;
+     17           INIT=N1;
+     18           SERVICE=EXP(8.);
+     19           TRANSIT=CPU;
+     20 /CONTROL/ CLASS=ALL QUEUE;
+     21 /EXEC/    FOR N1:=20 STEP 10 UNTIL 20 DO
+     22           BEGIN
+     23             PRINT;
+     24             TTR1:=0.005*N1+(0.02*PROB1(1)+0.3*PROB1(2))*N1+8.;
+     25             PRINT("TTR=",TTR1);
+     26             PRINT("NUMERO DE USUARIOS=",N1);
+     27             SOLVE;
+     28 &           CALCULO DE DEMANDAS V1 x S1 : CPU
+     29             S1:= MSERVICE(CPU);
+     30             V1:= PROB1(1) + PROB1(2) + 1;
+     31             PRINT("DEMANDA CPU=",S1*V1);
+     32 &           CALCULO DE DEMANDA : DISCO 1
+     33             S2:= MSERVICE(DISC(1));
+     34             V2:= PROB1(1);
+     35             PRINT("DEMANDA DISC1=",S2*V2);
+     36 &           CALCULO DE DEMANDA : DISCO 2
+     37             S3:= MSERVICE(DISC(2));
+     38             V3:= PROB1(2);
+     39             PRINT("DEMANDA DISC2=",S3*V3);
+     40 &           CALCULO PROBABILIDAD DE ENCAMINAMIENTO P1,2
+     41             PRINT("PROBABILIDAD DE ENCAMINAMIENTO P1,2=",V2/V1);
+     42             PRINT("PROBABILIDAD DE ENCAMINAMIENTO P2,1=",V3/V1);
+     43             V0 := MIN(V1,V2,V3);
+     44             PRINT("PROBABILIDAD DE ENCAMINAMIENTO P1,0=",V0/V1);
+     45 &           PRODUCTIVIDAD DEL SISTEMA
+     46             X := MIN(MTHRUPUT(CPU),MTHRUPUT(DISC(1)),MTHRUPUT(DISC(2)));
+     47             PRINT("PRODUCTIVIDAD DEL SISTEMA=",X);
+     48  
+     49 &           CALCULO TIEMPO DE RESPUESTA
+     50             Z := 8.0;
+     51             RZ := N1 / X;
+     52             R := RZ - Z;
+     53             W := N1 - (X * Z);
+     54             PRINT("TIEMPO DE RESPUESTA (R)=", R);
+     55             PRINT("TIEMPO TOTAL (R+Z)=", RZ);
+     56             PRINT("USUARIOS TRABAJANDO=", W);
+     57           END;
+ 
+1
+ TTR=   16.90    
+ NUMERO DE USUARIOS=       20 
+ - MEAN VALUE ANALYSIS ("MVA") -
+ *******************************************************************
+ *   NAME   *  SERVICE * BUSY PCT *  CUST NB * RESPONSE *  THRUPUT *
+ *******************************************************************
+ *          *          *          *          *          *          *
+ *CPU       *0.5000E-02*0.1001    *0.1106    *0.5526E-02* 20.02    *
+ *          *          *          *          *          *          *
+ *DISC   1  *0.2000E-01*0.3114    *0.4397    *0.2824E-01* 15.57    *
+ *          *          *          *          *          *          *
+ *DISC   2  *0.3000    *0.6672    * 1.657    *0.7449    * 2.224    *
+ *          *          *          *          *          *          *
+ *TERMINAL  * 8.000    *0.0000E+00* 17.79    * 8.000    * 2.224    *
+ *          *          *          *          *          *          *
+ *******************************************************************
+              MEMORY USED:       7604 WORDS OF 4 BYTES
+               (  0.15  % OF TOTAL MEMORY)
+ DEMANDA CPU=  0.4500E-01
+ DEMANDA DISC1=  0.1400    
+ DEMANDA DISC2=  0.3000    
+ PROBABILIDAD DE ENCAMINAMIENTO P1,2=  0.7778    
+ PROBABILIDAD DE ENCAMINAMIENTO P2,1=  0.1111    
+ PROBABILIDAD DE ENCAMINAMIENTO P1,0=  0.1111    
+ PRODUCTIVIDAD DEL SISTEMA=   2.224    
+ TIEMPO DE RESPUESTA (R)=  0.9923    
+ TIEMPO TOTAL (R+Z)=   8.992    
+ USUARIOS TRABAJANDO=   2.207    
+     58 /END/
+
+```
+# A. Viendo el fichero de resultados, ¿qué dispositivo tiene la utilización 
+mayor?, ¿por qué?, ¿cuál es la productividad del sistema?, ¿cuántos usuarios 
+están reflexionando?
+
+Para saber la utilización de cada estación mediante el output de QNAP, podemos 
+observar la columna "BUSY PCT", que nos indica el porcentaje de tiempo que la 
+estación está ocupada. Si nos fijamos en las diferentes estaciones y las 
+comparamos, podemos ver que la estación "DISC(2)" tiene la mayor utilización de 
+entre todos (0.6672), lo que significa que está ocupada aproximadamente el 
+66.72% del tiempo. Esto puede deberse a que es un dispositivo de servicio más 
+lento (0.3) en comparación con los otros dispositivos, lo que provoca una mayor 
+acumulación de usuarios en esta estación al no ser tan rápido.
+
+La productividad es el número de usuarios atendidos en el sistema por unidad de 
+tiempo. En este caso, la productividad del sistema se puede calcular a partir de
+la columna "THRUPUT" de la estación "TERMINAL", que es 2.224. Si seguimos la ley
+de little (el número de usuarios que entran es igual al número de usuarios que 
+salen), podemos decir que la productividad del sistema es de 2.224 usuarios por 
+unidad de tiempo.
+
+El tiempo de reflexión en este caso, podriamos indicarlo como la cantidad media 
+de peticiones en el "TERMINAL", el cual es 17.79. Esto significa que hay 
+aproximadamente 17.79 usuarios reflexionando en el sistema en un momento dado.
+
+
+# B. Resuelve el resto del problema 4.18 pero con la herramienta QNAP, es decir:
+
+## i) Programad el cálculo de las demandas de los tres dispositivos y su 
+impresión. 
+
+## ii) Programad el cálculo del tiempo de respuesta del sistema (R) y el tiempo 
+TOTAL
+
+(R+Z), así como el número de usuarios trabajando (imprimid todos los valores que 
+no muestra el fichero de resultados por defecto). 
+
+## iii) Programad e imprimid las probabilidades de encaminamiento entre todas 
+las colas del modelo del servidor central. 

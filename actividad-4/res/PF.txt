@@ -1,0 +1,127 @@
+ 
+  SIMULOG   ***  QNAP2  ***  ( 28-02-1999  ) V 9.4   
+  (C)  COPYRIGHT BY CII HONEYWELL BULL AND INRIA, 1986
+ 
+ 
+      1 /DECLARE/ QUEUE CPU,DISC,TERMINAL;
+      2           REAL TTR1,TOTAL,WORK;
+      3           INTEGER I,N1;
+      4 /STATION/ NAME=CPU;
+      5 &         SCHED=PS;
+      6           SERVICE=EXP(0.005);
+      7           TRANSIT=DISC,1,TERMINAL,1;
+      8 /STATION/ NAME=DISC;
+      9           TRANSIT=CPU;
+     10           SERVICE=EXP(0.02);
+     11 /STATION/ NAME=TERMINAL;
+     12           TYPE=INFINITE;
+     13           INIT=N1;
+     14           SERVICE=EXP(8.);
+     15           TRANSIT=CPU;
+     16 /CONTROL/ CLASS=ALL QUEUE;
+     17 /EXEC/    FOR N1:=20 STEP 10 UNTIL 20 DO
+     18           BEGIN
+     19             PRINT;
+     20             PRINT("NUMERO DE USUARIOS=",N1);
+     21             SOLVE;
+     22           END;
+ 
+1
+ NUMERO DE USUARIOS=       20 
+ - MEAN VALUE ANALYSIS ("MVA") -
+ *******************************************************************
+ *   NAME   *  SERVICE * BUSY PCT *  CUST NB * RESPONSE *  THRUPUT *
+ *******************************************************************
+ *          *          *          *          *          *          *
+ *CPU       *0.5000E-02*0.2490E-01*0.2551E-01*0.5121E-02* 4.981    *
+ *          *          *          *          *          *          *
+ *DISC      *0.2000E-01*0.4981E-01*0.5227E-01*0.2099E-01* 2.490    *
+ *          *          *          *          *          *          *
+ *TERMINAL  * 8.000    *0.0000E+00* 19.92    * 8.000    * 2.490    *
+ *          *          *          *          *          *          *
+ *******************************************************************
+              MEMORY USED:       6762 WORDS OF 4 BYTES
+               (  0.14  % OF TOTAL MEMORY)
+     23 /END/
+
+
+# F. Volved a vuestro modelo original y eliminad el disco que solo tiene una 
+visita y pasad esa visita al otro disco ¿qué variaciones ocurren en los valores 
+anteriores? ¿Por qué? Aproximad la velocidad del único disco para que el tiempo 
+de respuesta del sistema fuera el del modelo original.
+
+Podemos observar como al eliminar el disco lento, el sistema se vuelve más 
+"lento", pero ¿Por qué?
+
+La razón puede ser algo anti-intuitiva, pero es la siguiente:
+El throughput del sistema es el del eslabón más lento, y al eliminar el disco
+estamos eliminando dicho eslabón, haciendo que el throughput aparentemente
+se reduzca, pero en realidad lo que ocurre es que el sistema se vuelve tan
+rápido, que todas las peticiones se hacen al instante y las colas se vacían,
+Por lo tanto, el siguiente eslabón más lento es el Terminal (thinking time).
+Haciendo que el sistema se quede esperando a que el usuario reflexione y
+por ello, realice menos peticiones por unidad de tiempo.
+
+
+# F.2 Aproximad la velocidad del único disco para que el tiempo de respuesta del
+
+ 
+  SIMULOG   ***  QNAP2  ***  ( 28-02-1999  ) V 9.4   
+  (C)  COPYRIGHT BY CII HONEYWELL BULL AND INRIA, 1986
+ 
+ 
+      1 /DECLARE/ QUEUE CPU,DISC,TERMINAL;
+      2           REAL TTR1,TOTAL,WORK;
+      3           INTEGER I,N1;
+      4 /STATION/ NAME=CPU;
+      5 &         SCHED=PS;
+      6           SERVICE=EXP(0.005);
+      7           TRANSIT=DISC,1,TERMINAL,1;
+      8 /STATION/ NAME=DISC;
+      9           TRANSIT=CPU;
+     10           SERVICE=EXP(0.44);
+     11 /STATION/ NAME=TERMINAL;
+     12           TYPE=INFINITE;
+     13           INIT=N1;
+     14           SERVICE=EXP(8.);
+     15           TRANSIT=CPU;
+     16 /CONTROL/ CLASS=ALL QUEUE;
+     17 /EXEC/    FOR N1:=20 STEP 10 UNTIL 20 DO
+     18           BEGIN
+     19             PRINT;
+     20             PRINT("NUMERO DE USUARIOS=",N1);
+     21             TTR1:=0.005*N1+0.44*N1+8.;
+     22             PRINT("TTR=",TTR1);
+     23             SOLVE;
+     24           END;
+ 
+1
+ NUMERO DE USUARIOS=       20 
+ TTR=   16.90    
+ - MEAN VALUE ANALYSIS ("MVA") -
+ *******************************************************************
+ *   NAME   *  SERVICE * BUSY PCT *  CUST NB * RESPONSE *  THRUPUT *
+ *******************************************************************
+ *          *          *          *          *          *          *
+ *CPU       *0.5000E-02*0.2013E-01*0.2053E-01*0.5099E-02* 4.026    *
+ *          *          *          *          *          *          *
+ *DISC      *0.4400    *0.8858    * 3.873    * 1.924    * 2.013    *
+ *          *          *          *          *          *          *
+ *TERMINAL  * 8.000    *0.0000E+00* 16.11    * 8.000    * 2.013    *
+ *          *          *          *          *          *          *
+ *******************************************************************
+              MEMORY USED:       6790 WORDS OF 4 BYTES
+               (  0.14  % OF TOTAL MEMORY)
+     25 /END/
+
+
+Obtener exactamente el tiempo de respuesta del modelo original es complicado, 
+ya que estamos utilizando en paralelo dos discos, y al eliminar uno de ellos
+pasamos a un modelo secuencial. Pero, usando la aproximación del TTR del
+modelo original, el cual era 16.9, podemos aproximar la velocidad del disco.
+
+Necesitamos que el tiempo de respuesta del sistema sea 16.9, por lo tanto,
+si hacemos la operacion 0.005*20+X*20+8, y lo igualamos a 16.9, y despejamos
+X, nos da un resultado de X = 0,44 aproximadamente.
+Por lo tanto, el disco debería tener una velocidad de 0.44, para que el
+TTR fuera el mismo que el del modelo original.

@@ -1,0 +1,71 @@
+ 
+  SIMULOG   ***  QNAP2  ***  ( 28-02-1999  ) V 9.4   
+  (C)  COPYRIGHT BY CII HONEYWELL BULL AND INRIA, 1986
+ 
+ 
+      1 /DECLARE/ QUEUE CPU(2),DISC(2),TERMINAL;
+      2           REAL PROB1(2)=(7.,1.);
+      3           REAL PROB2(2)=(1.,1.);
+      4           REAL TTR1,TOTAL,WORK;
+      5           INTEGER I,N1;
+      6 /STATION/ NAME=CPU(1);
+      7 &         SCHED=PS;
+      8           SERVICE=EXP(0.005);
+      9           TRANSIT=DISC,PROB1,TERMINAL,1;
+     10 /STATION/ NAME=CPU(2);
+     11 &         SCHED=PS;
+     12           SERVICE=EXP(0.005);
+     13           TRANSIT=DISC,PROB1,TERMINAL,1;
+     14 /STATION/ NAME=DISC;
+     15           TRANSIT=CPU,PROB2;
+     16 /STATION/ NAME=DISC(1);
+     17           SERVICE=EXP(0.02);
+     18 /STATION/ NAME=DISC(2);
+     19           SERVICE=EXP(0.3);
+     20 /STATION/ NAME=TERMINAL;
+     21           TYPE=INFINITE;
+     22           INIT=N1;
+     23           SERVICE=EXP(8.);
+     24           TRANSIT=CPU,PROB2;
+     25 /CONTROL/ CLASS=ALL QUEUE;
+     26 /EXEC/    FOR N1:=20 STEP 10 UNTIL 20 DO
+     27           BEGIN
+     28             PRINT;
+     29             PRINT("NUMERO DE USUARIOS=",N1);
+     30             SOLVE;
+     31           END;
+ 
+1
+ NUMERO DE USUARIOS=       20 
+ - MEAN VALUE ANALYSIS ("MVA") -
+ *******************************************************************
+ *   NAME   *  SERVICE * BUSY PCT *  CUST NB * RESPONSE *  THRUPUT *
+ *******************************************************************
+ *          *          *          *          *          *          *
+ *CPU    1  *0.5000E-02*0.5006E-01*0.5256E-01*0.5250E-02* 10.01    *
+ *          *          *          *          *          *          *
+ *CPU    2  *0.5000E-02*0.5006E-01*0.5256E-01*0.5250E-02* 10.01    *
+ *          *          *          *          *          *          *
+ *DISC   1  *0.2000E-01*0.3115    *0.4398    *0.2824E-01* 15.57    *
+ *          *          *          *          *          *          *
+ *DISC   2  *0.3000    *0.6674    * 1.658    *0.7452    * 2.225    *
+ *          *          *          *          *          *          *
+ *TERMINAL  * 8.000    *0.0000E+00* 17.80    * 8.000    * 2.225    *
+ *          *          *          *          *          *          *
+ *******************************************************************
+              MEMORY USED:       7460 WORDS OF 4 BYTES
+               (  0.15  % OF TOTAL MEMORY)
+     32 /END/
+
+# D. Volved a vuestro modelo original y ahora usad dos procesadores en vez de 
+uno con la velocidad original, ¿qué ha pasado con el rendimiento ahora? ¿Qué 
+diferencias hay con el modelo del apartado anterior?
+
+El throughput total de ambos modelos es aproximadamente el mismo (20), si 
+comparamos respecto el modelo anterior (ej c) ambos tiene el mismo busy time por
+cpu, algo que tiene sentido ya que el anterior va el doble de rápido. Y 
+comparándolo con el modelo original (vanilla) la suma del busy time de los dos 
+cpus es el mismo que el único cpu del original ya que al tener el mismo tiempo 
+de servicio tienen que estar los mismos tiempo sirviendo y por lo tanto se 
+reparte. Pero en conclusión, al ampliar a 2 cpus no mejora el throughput del 
+sistema dado que el cuello de botella no está en los cpus.
