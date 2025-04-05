@@ -1,0 +1,1210 @@
+Autores: Xiaozhe Cheng, Andrés Borrás Santos
+
+---------------------- PAB ----------------------
+
+  SIMULOG   ***  QNAP2  ***  ( 28-02-1999  ) V 9.4   
+  (C)  COPYRIGHT BY CII HONEYWELL BULL AND INRIA, 1986
+ 
+ 
+      1 /DECLARE/ QUEUE CPU,DISC(2),TERMINAL;
+      2           REAL PROB1(2)=(7.,1.);
+      3           REAL TTR1,TOTAL,WORK,V0,V1,V2,V3,S1,S2,S3,R1,R2,R3,X,RZ,R,Z,W;
+      4           INTEGER I,N1;
+      5 /STATION/ NAME=CPU;
+      6 &         SCHED=PS;
+      7           SERVICE=EXP(0.005);
+      8           TRANSIT=DISC,PROB1,TERMINAL,1;
+      9 /STATION/ NAME=DISC;
+     10           TRANSIT=CPU;
+     11 /STATION/ NAME=DISC(1);
+     12           SERVICE=EXP(0.02);
+     13 /STATION/ NAME=DISC(2);
+     14           SERVICE=EXP(0.3);
+     15 /STATION/ NAME=TERMINAL;
+     16           TYPE=INFINITE;
+     17           INIT=N1;
+     18           SERVICE=EXP(8.);
+     19           TRANSIT=CPU;
+     20 /CONTROL/ CLASS=ALL QUEUE;
+     21 /EXEC/    FOR N1:=20 STEP 10 UNTIL 20 DO
+     22           BEGIN
+     23             PRINT;
+     24             TTR1:=0.005*N1+(0.02*PROB1(1)+0.3*PROB1(2))*N1+8.;
+     25             PRINT("TTR=",TTR1);
+     26             PRINT("NUMERO DE USUARIOS=",N1);
+     27             SOLVE;
+     28 &           CALCULO DE DEMANDAS V1 x S1 : CPU
+     29             S1:= MSERVICE(CPU);
+     30             V1:= PROB1(1) + PROB1(2) + 1;
+     31             PRINT("DEMANDA CPU=",S1*V1);
+     32 &           CALCULO DE DEMANDA : DISCO 1
+     33             S2:= MSERVICE(DISC(1));
+     34             V2:= PROB1(1);
+     35             PRINT("DEMANDA DISC1=",S2*V2);
+     36 &           CALCULO DE DEMANDA : DISCO 2
+     37             S3:= MSERVICE(DISC(2));
+     38             V3:= PROB1(2);
+     39             PRINT("DEMANDA DISC2=",S3*V3);
+     40 &           CALCULO PROBABILIDAD DE ENCAMINAMIENTO P1,2
+     41             PRINT("PROBABILIDAD DE ENCAMINAMIENTO P1,2=",V2/V1);
+     42             PRINT("PROBABILIDAD DE ENCAMINAMIENTO P2,1=",V3/V1);
+     43             V0 := MIN(V1,V2,V3);
+     44             PRINT("PROBABILIDAD DE ENCAMINAMIENTO P1,0=",V0/V1);
+     45 &           PRODUCTIVIDAD DEL SISTEMA
+     46             X := MIN(MTHRUPUT(CPU),MTHRUPUT(DISC(1)),MTHRUPUT(DISC(2)));
+     47             PRINT("PRODUCTIVIDAD DEL SISTEMA=",X);
+     48  
+     49 &           CALCULO TIEMPO DE RESPUESTA
+     50             Z := 8.0;
+     51             RZ := N1 / X;
+     52             R := RZ - Z;
+     53             W := N1 - (X * Z);
+     54             PRINT("TIEMPO DE RESPUESTA (R)=", R);
+     55             PRINT("TIEMPO TOTAL (R+Z)=", RZ);
+     56             PRINT("USUARIOS TRABAJANDO=", W);
+     57           END;
+ 
+1
+ TTR=   16.90    
+ NUMERO DE USUARIOS=       20 
+ - MEAN VALUE ANALYSIS ("MVA") -
+ *******************************************************************
+ *   NAME   *  SERVICE * BUSY PCT *  CUST NB * RESPONSE *  THRUPUT *
+ *******************************************************************
+ *          *          *          *          *          *          *
+ *CPU       *0.5000E-02*0.1001    *0.1106    *0.5526E-02* 20.02    *
+ *          *          *          *          *          *          *
+ *DISC   1  *0.2000E-01*0.3114    *0.4397    *0.2824E-01* 15.57    *
+ *          *          *          *          *          *          *
+ *DISC   2  *0.3000    *0.6672    * 1.657    *0.7449    * 2.224    *
+ *          *          *          *          *          *          *
+ *TERMINAL  * 8.000    *0.0000E+00* 17.79    * 8.000    * 2.224    *
+ *          *          *          *          *          *          *
+ *******************************************************************
+              MEMORY USED:       7604 WORDS OF 4 BYTES
+               (  0.15  % OF TOTAL MEMORY)
+ DEMANDA CPU=  0.4500E-01
+ DEMANDA DISC1=  0.1400    
+ DEMANDA DISC2=  0.3000    
+ PROBABILIDAD DE ENCAMINAMIENTO P1,2=  0.7778    
+ PROBABILIDAD DE ENCAMINAMIENTO P2,1=  0.1111    
+ PROBABILIDAD DE ENCAMINAMIENTO P1,0=  0.1111    
+ PRODUCTIVIDAD DEL SISTEMA=   2.224    
+ TIEMPO DE RESPUESTA (R)=  0.9923    
+ TIEMPO TOTAL (R+Z)=   8.992    
+ USUARIOS TRABAJANDO=   2.207    
+     58 /END/
+
+# A. Viendo el fichero de resultados, ¿qué dispositivo tiene la utilización 
+mayor?, ¿por qué?, ¿cuál es la productividad del sistema?, ¿cuántos usuarios 
+están reflexionando?
+
+Para saber la utilización de cada estación mediante el output de QNAP, podemos 
+observar la columna "BUSY PCT", que nos indica el porcentaje de tiempo que la 
+estación está ocupada. Si nos fijamos en las diferentes estaciones y las 
+comparamos, podemos ver que la estación "DISC(2)" tiene la mayor utilización de 
+entre todos (0.6672), lo que significa que está ocupada aproximadamente el 
+66.72% del tiempo. Esto puede deberse a que es un dispositivo de servicio más 
+lento (0.3) en comparación con los otros dispositivos, lo que provoca una mayor 
+acumulación de usuarios en esta estación al no ser tan rápido.
+
+La productividad es el número de usuarios atendidos en el sistema por unidad de 
+tiempo. En este caso, la productividad del sistema se puede calcular a partir de
+la columna "THRUPUT" de la estación "TERMINAL", que es 2.224. Si seguimos la ley
+de little (el número de usuarios que entran es igual al número de usuarios que 
+salen), podemos decir que la productividad del sistema es de 2.224 usuarios por 
+unidad de tiempo.
+
+El tiempo de reflexión en este caso, podriamos indicarlo como la cantidad media 
+de peticiones en el "TERMINAL", el cual es 17.79. Esto significa que hay 
+aproximadamente 17.79 usuarios reflexionando en el sistema en un momento dado.
+
+
+# B. Resuelve el resto del problema 4.18 pero con la herramienta QNAP, es decir:
+
+## i) Programad el cálculo de las demandas de los tres dispositivos y su 
+impresión. 
+
+## ii) Programad el cálculo del tiempo de respuesta del sistema (R) y el tiempo 
+TOTAL
+
+(R+Z), así como el número de usuarios trabajando (imprimid todos los valores que 
+no muestra el fichero de resultados por defecto). 
+
+## iii) Programad e imprimid las probabilidades de encaminamiento entre todas 
+las colas del modelo del servidor central. 
+---------------------- PC ---------------------- 
+
+  SIMULOG   ***  QNAP2  ***  ( 28-02-1999  ) V 9.4   
+  (C)  COPYRIGHT BY CII HONEYWELL BULL AND INRIA, 1986
+ 
+ 
+      1 /DECLARE/ QUEUE CPU,DISC(2),TERMINAL;
+      2           REAL PROB1(2)=(7.,1.);
+      3           REAL TTR1,TOTAL,WORK;
+      4           INTEGER I,N1;
+      5 /STATION/ NAME=CPU;
+      6 &         SCHED=PS;
+      7           SERVICE=EXP(0.0025);
+      8           TRANSIT=DISC,PROB1,TERMINAL,1;
+      9 /STATION/ NAME=DISC;
+     10           TRANSIT=CPU;
+     11 /STATION/ NAME=DISC(1);
+     12           SERVICE=EXP(0.02);
+     13 /STATION/ NAME=DISC(2);
+     14           SERVICE=EXP(0.3);
+     15 /STATION/ NAME=TERMINAL;
+     16           TYPE=INFINITE;
+     17           INIT=N1;
+     18           SERVICE=EXP(8.);
+     19           TRANSIT=CPU;
+     20 /CONTROL/ CLASS=ALL QUEUE;
+     21 /EXEC/    FOR N1:=20 STEP 10 UNTIL 20 DO
+     22           BEGIN
+     23             PRINT;
+     24             PRINT("NUMERO DE USUARIOS=",N1);
+     25             SOLVE;
+     26           END;
+ 
+1
+ NUMERO DE USUARIOS=       20 
+ - MEAN VALUE ANALYSIS ("MVA") -
+ *******************************************************************
+ *   NAME   *  SERVICE * BUSY PCT *  CUST NB * RESPONSE *  THRUPUT *
+ *******************************************************************
+ *          *          *          *          *          *          *
+ *CPU       *0.2500E-02*0.5017E-01*0.5269E-01*0.2626E-02* 20.07    *
+ *          *          *          *          *          *          *
+ *DISC   1  *0.2000E-01*0.3122    *0.4413    *0.2827E-01* 15.61    *
+ *          *          *          *          *          *          *
+ *DISC   2  *0.3000    *0.6690    * 1.667    *0.7475    * 2.230    *
+ *          *          *          *          *          *          *
+ *TERMINAL  * 8.000    *0.0000E+00* 17.84    * 8.000    * 2.230    *
+ *          *          *          *          *          *          *
+ *******************************************************************
+              MEMORY USED:       7088 WORDS OF 4 BYTES
+               (  0.14  % OF TOTAL MEMORY)
+     27 /END/
+
+# C. Cambiad  la  velocidad  del  procesador  por  uno  el  doble  de  rápido, 
+¿varían  mucho  los resultados? ¿Por qué?
+
+Tras aumentar la velocidad del procesador, podemos observar como el procesador 
+realiza sus tareas al doble de performance, pero, a pesar de ello, el throughput
+del sistema no se ve prácticamente afectado, dado que la CPU no es el cuello de 
+botella, sino que el cuello de botella viene dado por posiblemente los discos, 
+al ser estos, los mas lentos del sistema.
+---------------------- PD ---------------------- 
+
+  SIMULOG   ***  QNAP2  ***  ( 28-02-1999  ) V 9.4   
+  (C)  COPYRIGHT BY CII HONEYWELL BULL AND INRIA, 1986
+ 
+ 
+      1 /DECLARE/ QUEUE CPU(2),DISC(2),TERMINAL;
+      2           REAL PROB1(2)=(7.,1.);
+      3           REAL PROB2(2)=(1.,1.);
+      4           REAL TTR1,TOTAL,WORK;
+      5           INTEGER I,N1;
+      6 /STATION/ NAME=CPU(1);
+      7 &         SCHED=PS;
+      8           SERVICE=EXP(0.005);
+      9           TRANSIT=DISC,PROB1,TERMINAL,1;
+     10 /STATION/ NAME=CPU(2);
+     11 &         SCHED=PS;
+     12           SERVICE=EXP(0.005);
+     13           TRANSIT=DISC,PROB1,TERMINAL,1;
+     14 /STATION/ NAME=DISC;
+     15           TRANSIT=CPU,PROB2;
+     16 /STATION/ NAME=DISC(1);
+     17           SERVICE=EXP(0.02);
+     18 /STATION/ NAME=DISC(2);
+     19           SERVICE=EXP(0.3);
+     20 /STATION/ NAME=TERMINAL;
+     21           TYPE=INFINITE;
+     22           INIT=N1;
+     23           SERVICE=EXP(8.);
+     24           TRANSIT=CPU,PROB2;
+     25 /CONTROL/ CLASS=ALL QUEUE;
+     26 /EXEC/    FOR N1:=20 STEP 10 UNTIL 20 DO
+     27           BEGIN
+     28             PRINT;
+     29             PRINT("NUMERO DE USUARIOS=",N1);
+     30             SOLVE;
+     31           END;
+ 
+1
+ NUMERO DE USUARIOS=       20 
+ - MEAN VALUE ANALYSIS ("MVA") -
+ *******************************************************************
+ *   NAME   *  SERVICE * BUSY PCT *  CUST NB * RESPONSE *  THRUPUT *
+ *******************************************************************
+ *          *          *          *          *          *          *
+ *CPU    1  *0.5000E-02*0.5006E-01*0.5256E-01*0.5250E-02* 10.01    *
+ *          *          *          *          *          *          *
+ *CPU    2  *0.5000E-02*0.5006E-01*0.5256E-01*0.5250E-02* 10.01    *
+ *          *          *          *          *          *          *
+ *DISC   1  *0.2000E-01*0.3115    *0.4398    *0.2824E-01* 15.57    *
+ *          *          *          *          *          *          *
+ *DISC   2  *0.3000    *0.6674    * 1.658    *0.7452    * 2.225    *
+ *          *          *          *          *          *          *
+ *TERMINAL  * 8.000    *0.0000E+00* 17.80    * 8.000    * 2.225    *
+ *          *          *          *          *          *          *
+ *******************************************************************
+              MEMORY USED:       7460 WORDS OF 4 BYTES
+               (  0.15  % OF TOTAL MEMORY)
+     32 /END/
+
+# D. Volved a vuestro modelo original y ahora usad dos procesadores en vez de 
+uno con la velocidad original, ¿qué ha pasado con el rendimiento ahora? ¿Qué 
+diferencias hay con el modelo del apartado anterior?
+
+El throughput total de ambos modelos es aproximadamente el mismo (20), si 
+comparamos respecto el modelo anterior (ej c) ambos tiene el mismo busy time por
+cpu, algo que tiene sentido ya que el anterior va el doble de rápido. Y 
+comparándolo con el modelo original (vanilla) la suma del busy time de los dos 
+cpus es el mismo que el único cpu del original ya que al tener el mismo tiempo 
+de servicio tienen que estar los mismos tiempo sirviendo y por lo tanto se 
+reparte. Pero en conclusión, al ampliar a 2 cpus no mejora el throughput del 
+sistema dado que el cuello de botella no está en los cpus.
+---------------------- PE ---------------------- 
+
+  SIMULOG   ***  QNAP2  ***  ( 28-02-1999  ) V 9.4   
+  (C)  COPYRIGHT BY CII HONEYWELL BULL AND INRIA, 1986
+ 
+ 
+      1 /DECLARE/ QUEUE CPU,DISC(2),TERMINAL;
+      2           REAL PROB1(2)=(5.,5.);
+      3           REAL TTR1,TOTAL,WORK;
+      4           INTEGER I,N1;
+      5 /STATION/ NAME=CPU;
+      6 &         SCHED=PS;
+      7           SERVICE=EXP(0.005);
+      8           TRANSIT=DISC,PROB1,TERMINAL,1;
+      9 /STATION/ NAME=DISC;
+     10           TRANSIT=CPU;
+     11 /STATION/ NAME=DISC(1);
+     12           SERVICE=EXP(0.02);
+     13 /STATION/ NAME=DISC(2);
+     14           SERVICE=EXP(0.3);
+     15 /STATION/ NAME=TERMINAL;
+     16           TYPE=INFINITE;
+     17           INIT=N1;
+     18           SERVICE=EXP(8.);
+     19           TRANSIT=CPU;
+     20 /CONTROL/ CLASS=ALL QUEUE;
+     21 /EXEC/    FOR N1:=20 STEP 10 UNTIL 20 DO
+     22           BEGIN
+     23             PRINT;
+     24             PRINT("NUMERO DE USUARIOS=",N1);
+     25             SOLVE;
+     26           END;
+ 
+1
+ NUMERO DE USUARIOS=       20 
+ - MEAN VALUE ANALYSIS ("MVA") -
+ *******************************************************************
+ *   NAME   *  SERVICE * BUSY PCT *  CUST NB * RESPONSE *  THRUPUT *
+ *******************************************************************
+ *          *          *          *          *          *          *
+ *CPU       *0.5000E-02*0.3667E-01*0.3806E-01*0.5190E-02* 7.333    *
+ *          *          *          *          *          *          *
+ *DISC   1  *0.2000E-01*0.6667E-01*0.7143E-01*0.2143E-01* 3.333    *
+ *          *          *          *          *          *          *
+ *DISC   2  *0.3000    * 1.000    * 14.56    * 4.367    * 3.333    *
+ *          *          *          *          *          *          *
+ *TERMINAL  * 8.000    *0.0000E+00* 5.333    * 8.000    *0.6667    *
+ *          *          *          *          *          *          *
+ *******************************************************************
+              MEMORY USED:       7088 WORDS OF 4 BYTES
+               (  0.14  % OF TOTAL MEMORY)
+     27 /END/
+
+# E. Volved a vuestro modelo original y ahora equilibrad la E/S. ¿Qué ha pasado 
+con el rendimiento ahora? 
+
+Tras equilibrar la E/S con probabilidad 50% para cada una, podemos observar 
+como el rendimiento general del sistema ha disminuido, ya que
+el disco 2 es el mas lento y al equilibrar la E/S, le estamos dando
+más carga a dicho disco, lo que provoca que el rendimiento general del sistema
+sea menor. Además, en este caso, podemos ver como el segundo disco es
+incapaz de aguantar la carga de trabajo, ya que la tasa de ocupación
+es del 100%, lo que provocaría que el tiempo de respuesta fuera aún mayor.
+
+---------------------- PF ---------------------- 
+
+  SIMULOG   ***  QNAP2  ***  ( 28-02-1999  ) V 9.4   
+  (C)  COPYRIGHT BY CII HONEYWELL BULL AND INRIA, 1986
+ 
+ 
+      1 /DECLARE/ QUEUE CPU,DISC,TERMINAL;
+      2           REAL TTR1,TOTAL,WORK;
+      3           INTEGER I,N1;
+      4 /STATION/ NAME=CPU;
+      5 &         SCHED=PS;
+      6           SERVICE=EXP(0.005);
+      7           TRANSIT=DISC,1,TERMINAL,1;
+      8 /STATION/ NAME=DISC;
+      9           TRANSIT=CPU;
+     10           SERVICE=EXP(0.02);
+     11 /STATION/ NAME=TERMINAL;
+     12           TYPE=INFINITE;
+     13           INIT=N1;
+     14           SERVICE=EXP(8.);
+     15           TRANSIT=CPU;
+     16 /CONTROL/ CLASS=ALL QUEUE;
+     17 /EXEC/    FOR N1:=20 STEP 10 UNTIL 20 DO
+     18           BEGIN
+     19             PRINT;
+     20             PRINT("NUMERO DE USUARIOS=",N1);
+     21             SOLVE;
+     22           END;
+ 
+1
+ NUMERO DE USUARIOS=       20 
+ - MEAN VALUE ANALYSIS ("MVA") -
+ *******************************************************************
+ *   NAME   *  SERVICE * BUSY PCT *  CUST NB * RESPONSE *  THRUPUT *
+ *******************************************************************
+ *          *          *          *          *          *          *
+ *CPU       *0.5000E-02*0.2490E-01*0.2551E-01*0.5121E-02* 4.981    *
+ *          *          *          *          *          *          *
+ *DISC      *0.2000E-01*0.4981E-01*0.5227E-01*0.2099E-01* 2.490    *
+ *          *          *          *          *          *          *
+ *TERMINAL  * 8.000    *0.0000E+00* 19.92    * 8.000    * 2.490    *
+ *          *          *          *          *          *          *
+ *******************************************************************
+              MEMORY USED:       6762 WORDS OF 4 BYTES
+               (  0.14  % OF TOTAL MEMORY)
+     23 /END/
+
+
+# F. Volved a vuestro modelo original y eliminad el disco que solo tiene una 
+visita y pasad esa visita al otro disco ¿qué variaciones ocurren en los valores 
+anteriores? ¿Por qué? Aproximad la velocidad del único disco para que el tiempo 
+de respuesta del sistema fuera el del modelo original.
+
+Podemos observar como al eliminar el disco lento, el sistema se vuelve más 
+"lento", pero ¿Por qué?
+
+La razón puede ser algo anti-intuitiva, pero es la siguiente:
+El throughput del sistema es el del eslabón más lento, y al eliminar el disco
+estamos eliminando dicho eslabón, haciendo que el throughput aparentemente
+se reduzca, pero en realidad lo que ocurre es que el sistema se vuelve tan
+rápido, que todas las peticiones se hacen al instante y las colas se vacían,
+Por lo tanto, el siguiente eslabón más lento es el Terminal (thinking time).
+Haciendo que el sistema se quede esperando a que el usuario reflexione y
+por ello, realice menos peticiones por unidad de tiempo.
+
+
+# F.2 Aproximad la velocidad del único disco para que el tiempo de respuesta del
+
+ 
+  SIMULOG   ***  QNAP2  ***  ( 28-02-1999  ) V 9.4   
+  (C)  COPYRIGHT BY CII HONEYWELL BULL AND INRIA, 1986
+ 
+ 
+      1 /DECLARE/ QUEUE CPU,DISC,TERMINAL;
+      2           REAL TTR1,TOTAL,WORK;
+      3           INTEGER I,N1;
+      4 /STATION/ NAME=CPU;
+      5 &         SCHED=PS;
+      6           SERVICE=EXP(0.005);
+      7           TRANSIT=DISC,1,TERMINAL,1;
+      8 /STATION/ NAME=DISC;
+      9           TRANSIT=CPU;
+     10           SERVICE=EXP(0.44);
+     11 /STATION/ NAME=TERMINAL;
+     12           TYPE=INFINITE;
+     13           INIT=N1;
+     14           SERVICE=EXP(8.);
+     15           TRANSIT=CPU;
+     16 /CONTROL/ CLASS=ALL QUEUE;
+     17 /EXEC/    FOR N1:=20 STEP 10 UNTIL 20 DO
+     18           BEGIN
+     19             PRINT;
+     20             PRINT("NUMERO DE USUARIOS=",N1);
+     21             TTR1:=0.005*N1+0.44*N1+8.;
+     22             PRINT("TTR=",TTR1);
+     23             SOLVE;
+     24           END;
+ 
+1
+ NUMERO DE USUARIOS=       20 
+ TTR=   16.90    
+ - MEAN VALUE ANALYSIS ("MVA") -
+ *******************************************************************
+ *   NAME   *  SERVICE * BUSY PCT *  CUST NB * RESPONSE *  THRUPUT *
+ *******************************************************************
+ *          *          *          *          *          *          *
+ *CPU       *0.5000E-02*0.2013E-01*0.2053E-01*0.5099E-02* 4.026    *
+ *          *          *          *          *          *          *
+ *DISC      *0.4400    *0.8858    * 3.873    * 1.924    * 2.013    *
+ *          *          *          *          *          *          *
+ *TERMINAL  * 8.000    *0.0000E+00* 16.11    * 8.000    * 2.013    *
+ *          *          *          *          *          *          *
+ *******************************************************************
+              MEMORY USED:       6790 WORDS OF 4 BYTES
+               (  0.14  % OF TOTAL MEMORY)
+     25 /END/
+
+
+Obtener exactamente el tiempo de respuesta del modelo original es complicado, 
+ya que estamos utilizando en paralelo dos discos, y al eliminar uno de ellos
+pasamos a un modelo secuencial. Pero, usando la aproximación del TTR del
+modelo original, el cual era 16.9, podemos aproximar la velocidad del disco.
+
+Necesitamos que el tiempo de respuesta del sistema sea 16.9, por lo tanto,
+si hacemos la operacion 0.005*20+X*20+8, y lo igualamos a 16.9, y despejamos
+X, nos da un resultado de X = 0,44 aproximadamente.
+Por lo tanto, el disco debería tener una velocidad de 0.44, para que el
+TTR fuera el mismo que el del modelo original.
+---------------------- PG ---------------------- 
+
+  SIMULOG   ***  QNAP2  ***  ( 28-02-1999  ) V 9.4   
+  (C)  COPYRIGHT BY CII HONEYWELL BULL AND INRIA, 1986
+ 
+ 
+      1 /DECLARE/ QUEUE CPU,DISC(2),TERMINAL;
+      2           REAL PROB1(2)=(7.,3.);
+      3           REAL TTR1,TOTAL,WORK;
+      4           INTEGER I,N1;
+      5 /STATION/ NAME=CPU;
+      6 &         SCHED=PS;
+      7           SERVICE=EXP(0.005);
+      8           TRANSIT=DISC,PROB1,TERMINAL,1;
+      9 /STATION/ NAME=DISC;
+     10           TRANSIT=CPU;
+     11 /STATION/ NAME=DISC(1);
+     12           SERVICE=EXP(0.02);
+     13 /STATION/ NAME=DISC(2);
+     14           SERVICE=EXP(0.02);
+     15 /STATION/ NAME=TERMINAL;
+     16           TYPE=INFINITE;
+     17           INIT=N1;
+     18           SERVICE=EXP(8.);
+     19           TRANSIT=CPU;
+     20 /CONTROL/ CLASS=ALL QUEUE;
+     21 /EXEC/    FOR N1:=20 STEP 10 UNTIL 20 DO
+     22           BEGIN
+     23             PRINT;
+     24             PRINT("NUMERO DE USUARIOS=",N1);
+     25             SOLVE;
+     26           END;
+ 
+1
+ NUMERO DE USUARIOS=       20 
+ - MEAN VALUE ANALYSIS ("MVA") -
+ *******************************************************************
+ *   NAME   *  SERVICE * BUSY PCT *  CUST NB * RESPONSE *  THRUPUT *
+ *******************************************************************
+ *          *          *          *          *          *          *
+ *CPU       *0.5000E-02*0.1320    *0.1507    *0.5711E-02* 26.39    *
+ *          *          *          *          *          *          *
+ *DISC   1  *0.2000E-01*0.3359    *0.4882    *0.2907E-01* 16.80    *
+ *          *          *          *          *          *          *
+ *DISC   2  *0.2000E-01*0.1440    *0.1666    *0.2314E-01* 7.198    *
+ *          *          *          *          *          *          *
+ *TERMINAL  * 8.000    *0.0000E+00* 19.19    * 8.000    * 2.399    *
+ *          *          *          *          *          *          *
+ *******************************************************************
+              MEMORY USED:       7088 WORDS OF 4 BYTES
+               (  0.14  % OF TOTAL MEMORY)
+     27 /END/
+
+# G. Volved a vuestro modelo original y cread otro disco gemelo al original (el 
+de 7 visitas) y pasadle 3 visitas al disco gemelo, ¿qué variaciones se observan 
+en los cálculos, con respecto a tener dos discos del modelo original?
+
+Como podemos ver el throughput de la cpu ha aumentado respecto el original, 
+reflejando la conclusión dicha anteriormente de que el cpu no es el cuello de 
+botella. Y al mejorar el rendimiento del segundo cpu podemos ver claramente una 
+mejora de throughput en ambas, también se obseva que el disco 1 tiene mayor busy
+time respecto el disco 1 del original, esto es por que al tener el disco 2 más 
+rápido, se acumula más peticiones en la cola del cpu y este al restribuilos con 
+la proporción 70/30, se va acumulando cada vez más peticiones en el disco 1. Y 
+otro hecho que refleja el mayor utilización de la cpu, es que haya menos cola en 
+el terminal dado que el cpu tiene que procesar una mayor carga de los discos, y 
+por ende, envia ligeramente una menor cantidad de peticiones en la cola del 
+terminal.
+---------------------- PH ---------------------- 
+
+  SIMULOG   ***  QNAP2  ***  ( 28-02-1999  ) V 9.4   
+  (C)  COPYRIGHT BY CII HONEYWELL BULL AND INRIA, 1986
+ 
+ 
+      1 /DECLARE/ QUEUE CPU,DISC(2),TERMINAL;
+      2           REAL PROB1(2)=(7.,1.);
+      3           REAL TTR1,TOTAL,WORK;
+      4           INTEGER I,N1;
+      5 /STATION/ NAME=CPU;
+      6 &         SCHED=PS;
+      7           SERVICE=EXP(0.005);
+      8           TRANSIT=DISC,PROB1,TERMINAL,1;
+      9 /STATION/ NAME=DISC;
+     10           TRANSIT=CPU;
+     11 /STATION/ NAME=DISC(1);
+     12           SERVICE=EXP(0.02);
+     13 /STATION/ NAME=DISC(2);
+     14           SERVICE=EXP(0.3);
+     15 /STATION/ NAME=TERMINAL;
+     16           TYPE=INFINITE;
+     17           INIT=N1;
+     18           SERVICE=EXP(8.);
+     19           TRANSIT=CPU;
+     20 /CONTROL/ CLASS=ALL QUEUE;
+     21 /EXEC/    FOR N1:=10 STEP 10 UNTIL 100 DO
+     22           BEGIN
+     23             PRINT;
+     24             PRINT("NUMERO DE USUARIOS=",N1);
+     25             SOLVE;
+     26           END;
+ 
+1
+ NUMERO DE USUARIOS=       10 
+ - MEAN VALUE ANALYSIS ("MVA") -
+ *******************************************************************
+ *   NAME   *  SERVICE * BUSY PCT *  CUST NB * RESPONSE *  THRUPUT *
+ *******************************************************************
+ *          *          *          *          *          *          *
+ *CPU       *0.5000E-02*0.5209E-01*0.5464E-01*0.5245E-02* 10.42    *
+ *          *          *          *          *          *          *
+ *DISC   1  *0.2000E-01*0.1621    *0.1892    *0.2335E-01* 8.103    *
+ *          *          *          *          *          *          *
+ *DISC   2  *0.3000    *0.3473    *0.4958    *0.4283    * 1.158    *
+ *          *          *          *          *          *          *
+ *TERMINAL  * 8.000    *0.0000E+00* 9.260    * 8.000    * 1.158    *
+ *          *          *          *          *          *          *
+ *******************************************************************
+              MEMORY USED:       7096 WORDS OF 4 BYTES
+               (  0.14  % OF TOTAL MEMORY)
+ 
+1
+ NUMERO DE USUARIOS=       20 
+ - MEAN VALUE ANALYSIS ("MVA") -
+ *******************************************************************
+ *   NAME   *  SERVICE * BUSY PCT *  CUST NB * RESPONSE *  THRUPUT *
+ *******************************************************************
+ *          *          *          *          *          *          *
+ *CPU       *0.5000E-02*0.1001    *0.1106    *0.5526E-02* 20.02    *
+ *          *          *          *          *          *          *
+ *DISC   1  *0.2000E-01*0.3114    *0.4397    *0.2824E-01* 15.57    *
+ *          *          *          *          *          *          *
+ *DISC   2  *0.3000    *0.6672    * 1.657    *0.7449    * 2.224    *
+ *          *          *          *          *          *          *
+ *TERMINAL  * 8.000    *0.0000E+00* 17.79    * 8.000    * 2.224    *
+ *          *          *          *          *          *          *
+ *******************************************************************
+              MEMORY USED:       7119 WORDS OF 4 BYTES
+               (  0.14  % OF TOTAL MEMORY)
+ 
+1
+ NUMERO DE USUARIOS=       30 
+ - MEAN VALUE ANALYSIS ("MVA") -
+ *******************************************************************
+ *   NAME   *  SERVICE * BUSY PCT *  CUST NB * RESPONSE *  THRUPUT *
+ *******************************************************************
+ *          *          *          *          *          *          *
+ *CPU       *0.5000E-02*0.1361    *0.1570    *0.5767E-02* 27.23    *
+ *          *          *          *          *          *          *
+ *DISC   1  *0.2000E-01*0.4235    *0.7165    *0.3383E-01* 21.18    *
+ *          *          *          *          *          *          *
+ *DISC   2  *0.3000    *0.9076    * 4.924    * 1.628    * 3.025    *
+ *          *          *          *          *          *          *
+ *TERMINAL  * 8.000    *0.0000E+00* 24.20    * 8.000    * 3.025    *
+ *          *          *          *          *          *          *
+ *******************************************************************
+              MEMORY USED:       7142 WORDS OF 4 BYTES
+               (  0.14  % OF TOTAL MEMORY)
+ 
+1
+ NUMERO DE USUARIOS=       40 
+ - MEAN VALUE ANALYSIS ("MVA") -
+ *******************************************************************
+ *   NAME   *  SERVICE * BUSY PCT *  CUST NB * RESPONSE *  THRUPUT *
+ *******************************************************************
+ *          *          *          *          *          *          *
+ *CPU       *0.5000E-02*0.1491    *0.1751    *0.5872E-02* 29.81    *
+ *          *          *          *          *          *          *
+ *DISC   1  *0.2000E-01*0.4638    *0.8600    *0.3709E-01* 23.19    *
+ *          *          *          *          *          *          *
+ *DISC   2  *0.3000    *0.9938    * 12.46    * 3.762    * 3.313    *
+ *          *          *          *          *          *          *
+ *TERMINAL  * 8.000    *0.0000E+00* 26.50    * 8.000    * 3.313    *
+ *          *          *          *          *          *          *
+ *******************************************************************
+              MEMORY USED:       7165 WORDS OF 4 BYTES
+               (  0.14  % OF TOTAL MEMORY)
+ 
+1
+ NUMERO DE USUARIOS=       50 
+ - MEAN VALUE ANALYSIS ("MVA") -
+ *******************************************************************
+ *   NAME   *  SERVICE * BUSY PCT *  CUST NB * RESPONSE *  THRUPUT *
+ *******************************************************************
+ *          *          *          *          *          *          *
+ *CPU       *0.5000E-02*0.1500    *0.1765    *0.5882E-02* 30.00    *
+ *          *          *          *          *          *          *
+ *DISC   1  *0.2000E-01*0.4666    *0.8748    *0.3749E-01* 23.33    *
+ *          *          *          *          *          *          *
+ *DISC   2  *0.3000    *0.9999    * 22.28    * 6.685    * 3.333    *
+ *          *          *          *          *          *          *
+ *TERMINAL  * 8.000    *0.0000E+00* 26.67    * 8.000    * 3.333    *
+ *          *          *          *          *          *          *
+ *******************************************************************
+              MEMORY USED:       7188 WORDS OF 4 BYTES
+               (  0.14  % OF TOTAL MEMORY)
+ 
+1
+ NUMERO DE USUARIOS=       60 
+ - MEAN VALUE ANALYSIS ("MVA") -
+ *******************************************************************
+ *   NAME   *  SERVICE * BUSY PCT *  CUST NB * RESPONSE *  THRUPUT *
+ *******************************************************************
+ *          *          *          *          *          *          *
+ *CPU       *0.5000E-02*0.1500    *0.1765    *0.5882E-02* 30.00    *
+ *          *          *          *          *          *          *
+ *DISC   1  *0.2000E-01*0.4667    *0.8750    *0.3750E-01* 23.33    *
+ *          *          *          *          *          *          *
+ *DISC   2  *0.3000    * 1.000    * 32.28    * 9.685    * 3.333    *
+ *          *          *          *          *          *          *
+ *TERMINAL  * 8.000    *0.0000E+00* 26.67    * 8.000    * 3.333    *
+ *          *          *          *          *          *          *
+ *******************************************************************
+              MEMORY USED:       7211 WORDS OF 4 BYTES
+               (  0.14  % OF TOTAL MEMORY)
+ 
+1
+ NUMERO DE USUARIOS=       70 
+ - MEAN VALUE ANALYSIS ("MVA") -
+ *******************************************************************
+ *   NAME   *  SERVICE * BUSY PCT *  CUST NB * RESPONSE *  THRUPUT *
+ *******************************************************************
+ *          *          *          *          *          *          *
+ *CPU       *0.5000E-02*0.1500    *0.1765    *0.5882E-02* 30.00    *
+ *          *          *          *          *          *          *
+ *DISC   1  *0.2000E-01*0.4667    *0.8750    *0.3750E-01* 23.33    *
+ *          *          *          *          *          *          *
+ *DISC   2  *0.3000    * 1.000    * 42.28    * 12.68    * 3.333    *
+ *          *          *          *          *          *          *
+ *TERMINAL  * 8.000    *0.0000E+00* 26.67    * 8.000    * 3.333    *
+ *          *          *          *          *          *          *
+ *******************************************************************
+              MEMORY USED:       7234 WORDS OF 4 BYTES
+               (  0.14  % OF TOTAL MEMORY)
+ 
+1
+ NUMERO DE USUARIOS=       80 
+ - MEAN VALUE ANALYSIS ("MVA") -
+ *******************************************************************
+ *   NAME   *  SERVICE * BUSY PCT *  CUST NB * RESPONSE *  THRUPUT *
+ *******************************************************************
+ *          *          *          *          *          *          *
+ *CPU       *0.5000E-02*0.1500    *0.1765    *0.5882E-02* 30.00    *
+ *          *          *          *          *          *          *
+ *DISC   1  *0.2000E-01*0.4667    *0.8750    *0.3750E-01* 23.33    *
+ *          *          *          *          *          *          *
+ *DISC   2  *0.3000    * 1.000    * 52.28    * 15.68    * 3.333    *
+ *          *          *          *          *          *          *
+ *TERMINAL  * 8.000    *0.0000E+00* 26.67    * 8.000    * 3.333    *
+ *          *          *          *          *          *          *
+ *******************************************************************
+              MEMORY USED:       7257 WORDS OF 4 BYTES
+               (  0.15  % OF TOTAL MEMORY)
+ 
+1
+ NUMERO DE USUARIOS=       90 
+ - MEAN VALUE ANALYSIS ("MVA") -
+ *******************************************************************
+ *   NAME   *  SERVICE * BUSY PCT *  CUST NB * RESPONSE *  THRUPUT *
+ *******************************************************************
+ *          *          *          *          *          *          *
+ *CPU       *0.5000E-02*0.1500    *0.1765    *0.5882E-02* 30.00    *
+ *          *          *          *          *          *          *
+ *DISC   1  *0.2000E-01*0.4667    *0.8750    *0.3750E-01* 23.33    *
+ *          *          *          *          *          *          *
+ *DISC   2  *0.3000    * 1.000    * 62.28    * 18.68    * 3.333    *
+ *          *          *          *          *          *          *
+ *TERMINAL  * 8.000    *0.0000E+00* 26.67    * 8.000    * 3.333    *
+ *          *          *          *          *          *          *
+ *******************************************************************
+              MEMORY USED:       7280 WORDS OF 4 BYTES
+               (  0.15  % OF TOTAL MEMORY)
+ 
+1
+ NUMERO DE USUARIOS=      100 
+ - MEAN VALUE ANALYSIS ("MVA") -
+ *******************************************************************
+ *   NAME   *  SERVICE * BUSY PCT *  CUST NB * RESPONSE *  THRUPUT *
+ *******************************************************************
+ *          *          *          *          *          *          *
+ *CPU       *0.5000E-02*0.1500    *0.1765    *0.5882E-02* 30.00    *
+ *          *          *          *          *          *          *
+ *DISC   1  *0.2000E-01*0.4667    *0.8750    *0.3750E-01* 23.33    *
+ *          *          *          *          *          *          *
+ *DISC   2  *0.3000    * 1.000    * 72.28    * 21.68    * 3.333    *
+ *          *          *          *          *          *          *
+ *TERMINAL  * 8.000    *0.0000E+00* 26.67    * 8.000    * 3.333    *
+ *          *          *          *          *          *          *
+ *******************************************************************
+              MEMORY USED:       7303 WORDS OF 4 BYTES
+               (  0.15  % OF TOTAL MEMORY)
+     27 /END/
+---------------------- PI ---------------------- 
+
+  SIMULOG   ***  QNAP2  ***  ( 28-02-1999  ) V 9.4   
+  (C)  COPYRIGHT BY CII HONEYWELL BULL AND INRIA, 1986
+ 
+ 
+      1 /DECLARE/ QUEUE CPU,DISC(2),TERMINAL;
+      2           REAL PROB1(2)=(7.,1.);
+      3           REAL TTR1,TOTAL,WORK;
+      4           INTEGER I,N1;
+      5 /STATION/ NAME=CPU;
+      6 &         SCHED=PS;
+      7           SERVICE=EXP(0.005);
+      8           TRANSIT=DISC,PROB1,TERMINAL,1;
+      9 /STATION/ NAME=DISC;
+     10           TRANSIT=CPU;
+     11 /STATION/ NAME=DISC(1);
+     12           SERVICE=EXP(0.02);
+     13 /STATION/ NAME=DISC(2);
+     14           SERVICE=EXP(0.3);
+     15 /STATION/ NAME=TERMINAL;
+     16           TYPE=INFINITE;
+     17           INIT=N1;
+     18           SERVICE=EXP(16.);
+     19           TRANSIT=CPU;
+     20 /CONTROL/ CLASS=ALL QUEUE;
+     21 /EXEC/    FOR N1:=10 STEP 10 UNTIL 100 DO
+     22           BEGIN
+     23             PRINT;
+     24             PRINT("NUMERO DE USUARIOS=",N1);
+     25             SOLVE;
+     26           END;
+ 
+1
+ NUMERO DE USUARIOS=       10 
+ - MEAN VALUE ANALYSIS ("MVA") -
+ *******************************************************************
+ *   NAME   *  SERVICE * BUSY PCT *  CUST NB * RESPONSE *  THRUPUT *
+ *******************************************************************
+ *          *          *          *          *          *          *
+ *CPU       *0.5000E-02*0.2718E-01*0.2786E-01*0.5125E-02* 5.437    *
+ *          *          *          *          *          *          *
+ *DISC   1  *0.2000E-01*0.8457E-01*0.9147E-01*0.2163E-01* 4.228    *
+ *          *          *          *          *          *          *
+ *DISC   2  *0.3000    *0.1812    *0.2157    *0.3571    *0.6041    *
+ *          *          *          *          *          *          *
+ *TERMINAL  * 16.00    *0.0000E+00* 9.665    * 16.00    *0.6041    *
+ *          *          *          *          *          *          *
+ *******************************************************************
+              MEMORY USED:       7096 WORDS OF 4 BYTES
+               (  0.14  % OF TOTAL MEMORY)
+ 
+1
+ NUMERO DE USUARIOS=       20 
+ - MEAN VALUE ANALYSIS ("MVA") -
+ *******************************************************************
+ *   NAME   *  SERVICE * BUSY PCT *  CUST NB * RESPONSE *  THRUPUT *
+ *******************************************************************
+ *          *          *          *          *          *          *
+ *CPU       *0.5000E-02*0.5401E-01*0.5692E-01*0.5270E-02* 10.80    *
+ *          *          *          *          *          *          *
+ *DISC   1  *0.2000E-01*0.1680    *0.1996    *0.2376E-01* 8.401    *
+ *          *          *          *          *          *          *
+ *DISC   2  *0.3000    *0.3601    *0.5404    *0.4503    * 1.200    *
+ *          *          *          *          *          *          *
+ *TERMINAL  * 16.00    *0.0000E+00* 19.20    * 16.00    * 1.200    *
+ *          *          *          *          *          *          *
+ *******************************************************************
+              MEMORY USED:       7119 WORDS OF 4 BYTES
+               (  0.14  % OF TOTAL MEMORY)
+ 
+1
+ NUMERO DE USUARIOS=       30 
+ - MEAN VALUE ANALYSIS ("MVA") -
+ *******************************************************************
+ *   NAME   *  SERVICE * BUSY PCT *  CUST NB * RESPONSE *  THRUPUT *
+ *******************************************************************
+ *          *          *          *          *          *          *
+ *CPU       *0.5000E-02*0.8019E-01*0.8692E-01*0.5419E-02* 16.04    *
+ *          *          *          *          *          *          *
+ *DISC   1  *0.2000E-01*0.2495    *0.3278    *0.2628E-01* 12.47    *
+ *          *          *          *          *          *          *
+ *DISC   2  *0.3000    *0.5346    * 1.072    *0.6013    * 1.782    *
+ *          *          *          *          *          *          *
+ *TERMINAL  * 16.00    *0.0000E+00* 28.51    * 16.00    * 1.782    *
+ *          *          *          *          *          *          *
+ *******************************************************************
+              MEMORY USED:       7142 WORDS OF 4 BYTES
+               (  0.14  % OF TOTAL MEMORY)
+ 
+1
+ NUMERO DE USUARIOS=       40 
+ - MEAN VALUE ANALYSIS ("MVA") -
+ *******************************************************************
+ *   NAME   *  SERVICE * BUSY PCT *  CUST NB * RESPONSE *  THRUPUT *
+ *******************************************************************
+ *          *          *          *          *          *          *
+ *CPU       *0.5000E-02*0.1051    *0.1171    *0.5571E-02* 21.02    *
+ *          *          *          *          *          *          *
+ *DISC   1  *0.2000E-01*0.3269    *0.4780    *0.2924E-01* 16.35    *
+ *          *          *          *          *          *          *
+ *DISC   2  *0.3000    *0.7006    * 2.039    *0.8732    * 2.335    *
+ *          *          *          *          *          *          *
+ *TERMINAL  * 16.00    *0.0000E+00* 37.37    * 16.00    * 2.335    *
+ *          *          *          *          *          *          *
+ *******************************************************************
+              MEMORY USED:       7165 WORDS OF 4 BYTES
+               (  0.14  % OF TOTAL MEMORY)
+ 
+1
+ NUMERO DE USUARIOS=       50 
+ - MEAN VALUE ANALYSIS ("MVA") -
+ *******************************************************************
+ *   NAME   *  SERVICE * BUSY PCT *  CUST NB * RESPONSE *  THRUPUT *
+ *******************************************************************
+ *          *          *          *          *          *          *
+ *CPU       *0.5000E-02*0.1271    *0.1452    *0.5713E-02* 25.42    *
+ *          *          *          *          *          *          *
+ *DISC   1  *0.2000E-01*0.3954    *0.6431    *0.3253E-01* 19.77    *
+ *          *          *          *          *          *          *
+ *DISC   2  *0.3000    *0.8473    * 4.024    * 1.425    * 2.824    *
+ *          *          *          *          *          *          *
+ *TERMINAL  * 16.00    *0.0000E+00* 45.19    * 16.00    * 2.824    *
+ *          *          *          *          *          *          *
+ *******************************************************************
+              MEMORY USED:       7188 WORDS OF 4 BYTES
+               (  0.14  % OF TOTAL MEMORY)
+ 
+1
+ NUMERO DE USUARIOS=       60 
+ - MEAN VALUE ANALYSIS ("MVA") -
+ *******************************************************************
+ *   NAME   *  SERVICE * BUSY PCT *  CUST NB * RESPONSE *  THRUPUT *
+ *******************************************************************
+ *          *          *          *          *          *          *
+ *CPU       *0.5000E-02*0.1427    *0.1662    *0.5823E-02* 28.54    *
+ *          *          *          *          *          *          *
+ *DISC   1  *0.2000E-01*0.4440    *0.7891    *0.3554E-01* 22.20    *
+ *          *          *          *          *          *          *
+ *DISC   2  *0.3000    *0.9515    * 8.299    * 2.617    * 3.172    *
+ *          *          *          *          *          *          *
+ *TERMINAL  * 16.00    *0.0000E+00* 50.75    * 16.00    * 3.172    *
+ *          *          *          *          *          *          *
+ *******************************************************************
+              MEMORY USED:       7211 WORDS OF 4 BYTES
+               (  0.14  % OF TOTAL MEMORY)
+ 
+1
+ NUMERO DE USUARIOS=       70 
+ - MEAN VALUE ANALYSIS ("MVA") -
+ *******************************************************************
+ *   NAME   *  SERVICE * BUSY PCT *  CUST NB * RESPONSE *  THRUPUT *
+ *******************************************************************
+ *          *          *          *          *          *          *
+ *CPU       *0.5000E-02*0.1490    *0.1751    *0.5873E-02* 29.81    *
+ *          *          *          *          *          *          *
+ *DISC   1  *0.2000E-01*0.4637    *0.8615    *0.3716E-01* 23.18    *
+ *          *          *          *          *          *          *
+ *DISC   2  *0.3000    *0.9936    * 15.97    * 4.822    * 3.312    *
+ *          *          *          *          *          *          *
+ *TERMINAL  * 16.00    *0.0000E+00* 52.99    * 16.00    * 3.312    *
+ *          *          *          *          *          *          *
+ *******************************************************************
+              MEMORY USED:       7234 WORDS OF 4 BYTES
+               (  0.14  % OF TOTAL MEMORY)
+ 
+1
+ NUMERO DE USUARIOS=       80 
+ - MEAN VALUE ANALYSIS ("MVA") -
+ *******************************************************************
+ *   NAME   *  SERVICE * BUSY PCT *  CUST NB * RESPONSE *  THRUPUT *
+ *******************************************************************
+ *          *          *          *          *          *          *
+ *CPU       *0.5000E-02*0.1500    *0.1764    *0.5882E-02* 29.99    *
+ *          *          *          *          *          *          *
+ *DISC   1  *0.2000E-01*0.4665    *0.8743    *0.3748E-01* 23.33    *
+ *          *          *          *          *          *          *
+ *DISC   2  *0.3000    *0.9997    * 25.63    * 7.691    * 3.332    *
+ *          *          *          *          *          *          *
+ *TERMINAL  * 16.00    *0.0000E+00* 53.32    * 16.00    * 3.332    *
+ *          *          *          *          *          *          *
+ *******************************************************************
+              MEMORY USED:       7257 WORDS OF 4 BYTES
+               (  0.15  % OF TOTAL MEMORY)
+ 
+1
+ NUMERO DE USUARIOS=       90 
+ - MEAN VALUE ANALYSIS ("MVA") -
+ *******************************************************************
+ *   NAME   *  SERVICE * BUSY PCT *  CUST NB * RESPONSE *  THRUPUT *
+ *******************************************************************
+ *          *          *          *          *          *          *
+ *CPU       *0.5000E-02*0.1500    *0.1765    *0.5882E-02* 30.00    *
+ *          *          *          *          *          *          *
+ *DISC   1  *0.2000E-01*0.4667    *0.8750    *0.3750E-01* 23.33    *
+ *          *          *          *          *          *          *
+ *DISC   2  *0.3000    * 1.000    * 35.62    * 10.68    * 3.333    *
+ *          *          *          *          *          *          *
+ *TERMINAL  * 16.00    *0.0000E+00* 53.33    * 16.00    * 3.333    *
+ *          *          *          *          *          *          *
+ *******************************************************************
+              MEMORY USED:       7280 WORDS OF 4 BYTES
+               (  0.15  % OF TOTAL MEMORY)
+ 
+1
+ NUMERO DE USUARIOS=      100 
+ - MEAN VALUE ANALYSIS ("MVA") -
+ *******************************************************************
+ *   NAME   *  SERVICE * BUSY PCT *  CUST NB * RESPONSE *  THRUPUT *
+ *******************************************************************
+ *          *          *          *          *          *          *
+ *CPU       *0.5000E-02*0.1500    *0.1765    *0.5882E-02* 30.00    *
+ *          *          *          *          *          *          *
+ *DISC   1  *0.2000E-01*0.4667    *0.8750    *0.3750E-01* 23.33    *
+ *          *          *          *          *          *          *
+ *DISC   2  *0.3000    * 1.000    * 45.62    * 13.68    * 3.333    *
+ *          *          *          *          *          *          *
+ *TERMINAL  * 16.00    *0.0000E+00* 53.33    * 16.00    * 3.333    *
+ *          *          *          *          *          *          *
+ *******************************************************************
+              MEMORY USED:       7303 WORDS OF 4 BYTES
+               (  0.15  % OF TOTAL MEMORY)
+     27 /END/
+ 
+  SIMULOG   ***  QNAP2  ***  ( 28-02-1999  ) V 9.4   
+  (C)  COPYRIGHT BY CII HONEYWELL BULL AND INRIA, 1986
+ 
+ 
+      1 /DECLARE/ QUEUE CPU,DISC(2),TERMINAL;
+      2           REAL PROB1(2)=(7.,1.);
+      3           REAL TTR1,TOTAL,WORK;
+      4           INTEGER I,N1;
+      5 /STATION/ NAME=CPU;
+      6 &         SCHED=PS;
+      7           SERVICE=EXP(0.005);
+      8           TRANSIT=DISC,PROB1,TERMINAL,1;
+      9 /STATION/ NAME=DISC;
+     10           TRANSIT=CPU;
+     11 /STATION/ NAME=DISC(1);
+     12           SERVICE=EXP(0.02);
+     13 /STATION/ NAME=DISC(2);
+     14           SERVICE=EXP(0.3);
+     15 /STATION/ NAME=TERMINAL;
+     16           TYPE=INFINITE;
+     17           INIT=N1;
+     18           SERVICE=EXP(4.);
+     19           TRANSIT=CPU;
+     20 /CONTROL/ CLASS=ALL QUEUE;
+     21 /EXEC/    FOR N1:=10 STEP 10 UNTIL 100 DO
+     22           BEGIN
+     23             PRINT;
+     24             PRINT("NUMERO DE USUARIOS=",N1);
+     25             SOLVE;
+     26           END;
+ 
+1
+ NUMERO DE USUARIOS=       10 
+ - MEAN VALUE ANALYSIS ("MVA") -
+ *******************************************************************
+ *   NAME   *  SERVICE * BUSY PCT *  CUST NB * RESPONSE *  THRUPUT *
+ *******************************************************************
+ *          *          *          *          *          *          *
+ *CPU       *0.5000E-02*0.9275E-01*0.1012    *0.5457E-02* 18.55    *
+ *          *          *          *          *          *          *
+ *DISC   1  *0.2000E-01*0.2886    *0.3870    *0.2682E-01* 14.43    *
+ *          *          *          *          *          *          *
+ *DISC   2  *0.3000    *0.6183    * 1.267    *0.6147    * 2.061    *
+ *          *          *          *          *          *          *
+ *TERMINAL  * 4.000    *0.0000E+00* 8.245    * 4.000    * 2.061    *
+ *          *          *          *          *          *          *
+ *******************************************************************
+              MEMORY USED:       7096 WORDS OF 4 BYTES
+               (  0.14  % OF TOTAL MEMORY)
+ 
+1
+ NUMERO DE USUARIOS=       20 
+ - MEAN VALUE ANALYSIS ("MVA") -
+ *******************************************************************
+ *   NAME   *  SERVICE * BUSY PCT *  CUST NB * RESPONSE *  THRUPUT *
+ *******************************************************************
+ *          *          *          *          *          *          *
+ *CPU       *0.5000E-02*0.1446    *0.1685    *0.5826E-02* 28.91    *
+ *          *          *          *          *          *          *
+ *DISC   1  *0.2000E-01*0.4498    *0.7959    *0.3539E-01* 22.49    *
+ *          *          *          *          *          *          *
+ *DISC   2  *0.3000    *0.9638    * 6.185    * 1.925    * 3.213    *
+ *          *          *          *          *          *          *
+ *TERMINAL  * 4.000    *0.0000E+00* 12.85    * 4.000    * 3.213    *
+ *          *          *          *          *          *          *
+ *******************************************************************
+              MEMORY USED:       7119 WORDS OF 4 BYTES
+               (  0.14  % OF TOTAL MEMORY)
+ 
+1
+ NUMERO DE USUARIOS=       30 
+ - MEAN VALUE ANALYSIS ("MVA") -
+ *******************************************************************
+ *   NAME   *  SERVICE * BUSY PCT *  CUST NB * RESPONSE *  THRUPUT *
+ *******************************************************************
+ *          *          *          *          *          *          *
+ *CPU       *0.5000E-02*0.1500    *0.1764    *0.5882E-02* 29.99    *
+ *          *          *          *          *          *          *
+ *DISC   1  *0.2000E-01*0.4666    *0.8741    *0.3747E-01* 23.33    *
+ *          *          *          *          *          *          *
+ *DISC   2  *0.3000    *0.9998    * 15.62    * 4.687    * 3.333    *
+ *          *          *          *          *          *          *
+ *TERMINAL  * 4.000    *0.0000E+00* 13.33    * 4.000    * 3.333    *
+ *          *          *          *          *          *          *
+ *******************************************************************
+              MEMORY USED:       7142 WORDS OF 4 BYTES
+               (  0.14  % OF TOTAL MEMORY)
+ 
+1
+ NUMERO DE USUARIOS=       40 
+ - MEAN VALUE ANALYSIS ("MVA") -
+ *******************************************************************
+ *   NAME   *  SERVICE * BUSY PCT *  CUST NB * RESPONSE *  THRUPUT *
+ *******************************************************************
+ *          *          *          *          *          *          *
+ *CPU       *0.5000E-02*0.1500    *0.1765    *0.5882E-02* 30.00    *
+ *          *          *          *          *          *          *
+ *DISC   1  *0.2000E-01*0.4667    *0.8750    *0.3750E-01* 23.33    *
+ *          *          *          *          *          *          *
+ *DISC   2  *0.3000    * 1.000    * 25.62    * 7.685    * 3.333    *
+ *          *          *          *          *          *          *
+ *TERMINAL  * 4.000    *0.0000E+00* 13.33    * 4.000    * 3.333    *
+ *          *          *          *          *          *          *
+ *******************************************************************
+              MEMORY USED:       7165 WORDS OF 4 BYTES
+               (  0.14  % OF TOTAL MEMORY)
+ 
+1
+ NUMERO DE USUARIOS=       50 
+ - MEAN VALUE ANALYSIS ("MVA") -
+ *******************************************************************
+ *   NAME   *  SERVICE * BUSY PCT *  CUST NB * RESPONSE *  THRUPUT *
+ *******************************************************************
+ *          *          *          *          *          *          *
+ *CPU       *0.5000E-02*0.1500    *0.1765    *0.5882E-02* 30.00    *
+ *          *          *          *          *          *          *
+ *DISC   1  *0.2000E-01*0.4667    *0.8750    *0.3750E-01* 23.33    *
+ *          *          *          *          *          *          *
+ *DISC   2  *0.3000    * 1.000    * 35.62    * 10.68    * 3.333    *
+ *          *          *          *          *          *          *
+ *TERMINAL  * 4.000    *0.0000E+00* 13.33    * 4.000    * 3.333    *
+ *          *          *          *          *          *          *
+ *******************************************************************
+              MEMORY USED:       7188 WORDS OF 4 BYTES
+               (  0.14  % OF TOTAL MEMORY)
+ 
+1
+ NUMERO DE USUARIOS=       60 
+ - MEAN VALUE ANALYSIS ("MVA") -
+ *******************************************************************
+ *   NAME   *  SERVICE * BUSY PCT *  CUST NB * RESPONSE *  THRUPUT *
+ *******************************************************************
+ *          *          *          *          *          *          *
+ *CPU       *0.5000E-02*0.1500    *0.1765    *0.5882E-02* 30.00    *
+ *          *          *          *          *          *          *
+ *DISC   1  *0.2000E-01*0.4667    *0.8750    *0.3750E-01* 23.33    *
+ *          *          *          *          *          *          *
+ *DISC   2  *0.3000    * 1.000    * 45.62    * 13.68    * 3.333    *
+ *          *          *          *          *          *          *
+ *TERMINAL  * 4.000    *0.0000E+00* 13.33    * 4.000    * 3.333    *
+ *          *          *          *          *          *          *
+ *******************************************************************
+              MEMORY USED:       7211 WORDS OF 4 BYTES
+               (  0.14  % OF TOTAL MEMORY)
+ 
+1
+ NUMERO DE USUARIOS=       70 
+ - MEAN VALUE ANALYSIS ("MVA") -
+ *******************************************************************
+ *   NAME   *  SERVICE * BUSY PCT *  CUST NB * RESPONSE *  THRUPUT *
+ *******************************************************************
+ *          *          *          *          *          *          *
+ *CPU       *0.5000E-02*0.1500    *0.1765    *0.5882E-02* 30.00    *
+ *          *          *          *          *          *          *
+ *DISC   1  *0.2000E-01*0.4667    *0.8750    *0.3750E-01* 23.33    *
+ *          *          *          *          *          *          *
+ *DISC   2  *0.3000    * 1.000    * 55.62    * 16.68    * 3.333    *
+ *          *          *          *          *          *          *
+ *TERMINAL  * 4.000    *0.0000E+00* 13.33    * 4.000    * 3.333    *
+ *          *          *          *          *          *          *
+ *******************************************************************
+              MEMORY USED:       7234 WORDS OF 4 BYTES
+               (  0.14  % OF TOTAL MEMORY)
+ 
+1
+ NUMERO DE USUARIOS=       80 
+ - MEAN VALUE ANALYSIS ("MVA") -
+ *******************************************************************
+ *   NAME   *  SERVICE * BUSY PCT *  CUST NB * RESPONSE *  THRUPUT *
+ *******************************************************************
+ *          *          *          *          *          *          *
+ *CPU       *0.5000E-02*0.1500    *0.1765    *0.5882E-02* 30.00    *
+ *          *          *          *          *          *          *
+ *DISC   1  *0.2000E-01*0.4667    *0.8750    *0.3750E-01* 23.33    *
+ *          *          *          *          *          *          *
+ *DISC   2  *0.3000    * 1.000    * 65.62    * 19.68    * 3.333    *
+ *          *          *          *          *          *          *
+ *TERMINAL  * 4.000    *0.0000E+00* 13.33    * 4.000    * 3.333    *
+ *          *          *          *          *          *          *
+ *******************************************************************
+              MEMORY USED:       7257 WORDS OF 4 BYTES
+               (  0.15  % OF TOTAL MEMORY)
+ 
+1
+ NUMERO DE USUARIOS=       90 
+ - MEAN VALUE ANALYSIS ("MVA") -
+ *******************************************************************
+ *   NAME   *  SERVICE * BUSY PCT *  CUST NB * RESPONSE *  THRUPUT *
+ *******************************************************************
+ *          *          *          *          *          *          *
+ *CPU       *0.5000E-02*0.1500    *0.1765    *0.5882E-02* 30.00    *
+ *          *          *          *          *          *          *
+ *DISC   1  *0.2000E-01*0.4667    *0.8750    *0.3750E-01* 23.33    *
+ *          *          *          *          *          *          *
+ *DISC   2  *0.3000    * 1.000    * 75.62    * 22.68    * 3.333    *
+ *          *          *          *          *          *          *
+ *TERMINAL  * 4.000    *0.0000E+00* 13.33    * 4.000    * 3.333    *
+ *          *          *          *          *          *          *
+ *******************************************************************
+              MEMORY USED:       7280 WORDS OF 4 BYTES
+               (  0.15  % OF TOTAL MEMORY)
+ 
+1
+ NUMERO DE USUARIOS=      100 
+ - MEAN VALUE ANALYSIS ("MVA") -
+ *******************************************************************
+ *   NAME   *  SERVICE * BUSY PCT *  CUST NB * RESPONSE *  THRUPUT *
+ *******************************************************************
+ *          *          *          *          *          *          *
+ *CPU       *0.5000E-02*0.1500    *0.1765    *0.5882E-02* 30.00    *
+ *          *          *          *          *          *          *
+ *DISC   1  *0.2000E-01*0.4667    *0.8750    *0.3750E-01* 23.33    *
+ *          *          *          *          *          *          *
+ *DISC   2  *0.3000    * 1.000    * 85.62    * 25.68    * 3.333    *
+ *          *          *          *          *          *          *
+ *TERMINAL  * 4.000    *0.0000E+00* 13.33    * 4.000    * 3.333    *
+ *          *          *          *          *          *          *
+ *******************************************************************
+              MEMORY USED:       7303 WORDS OF 4 BYTES
+               (  0.15  % OF TOTAL MEMORY)
+     27 /END/
+
+# I. Sobre el modelo del apartado h, cambiad el tiempo de reflexión al doble y a
+la mitad. Representad en la tabla anterior los nuevos tiempos de respuesta (R) 
+¿Qué ha ocurrido? Representa con 2 gráficos de histogramas comparativos.
+
+Podemos ver que en las dos primeras gráficas (el de apartado h y el de tiempo 
+reflexión doble) cuando hay poco cliente no se varía casi nada el incremento del
+tiempo de respuesta del sistema, sin embargo cuando el tiempo de reflexión se 
+disminuye a la mitad el incremento el tiempo de respuesta respecto a la
+cantidad de cliente aumenta desde el principio. Esto nos dice que al disminuir 
+el tiempo de reflexión los clientes vuelve más amenudo al sistema y por lo tanto
+hay más clientes en cola que resulta un mayor tiempo de respuesta. Y en las dos 
+primeras gráficas cuando no hay incremento del tiempo de respuesta quiere decir
+que no hay casi cliente en cola y por lo tanto se mantiene igual.
