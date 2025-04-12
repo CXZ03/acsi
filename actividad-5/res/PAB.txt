@@ -1,0 +1,329 @@
+ 
+  SIMULOG   ***  QNAP2  ***  ( 28-02-1999  ) V 9.4   
+  (C)  COPYRIGHT BY CII HONEYWELL BULL AND INRIA, 1986
+ 
+ 
+      1 /DECLARE/ QUEUE CPU,DISC,TERMINAL;
+      2           REAL PROB1(2)=(8.,7.);
+      3           REAL D,DCPU,DDISK;
+      4           REAL R, RTOTAL;
+      5           INTEGER I,N1;
+      6 /STATION/ NAME=CPU;
+      7 &         SCHED=PS;
+      8           SERVICE=EXP(0.03);
+      9           TRANSIT=DISC,PROB1(2),TERMINAL,1;
+     10 /STATION/ NAME=DISC;
+     11           TRANSIT=CPU;
+     12           SERVICE=EXP(0.1);
+     13 /STATION/ NAME=TERMINAL;
+     14           TYPE=INFINITE;
+     15           INIT=N1;
+     16           SERVICE=EXP(8.);
+     17           TRANSIT=CPU,PROB1(1);
+     18 /CONTROL/ CLASS=ALL QUEUE;
+     19 /EXEC/    FOR N1:=1 STEP 1 UNTIL 10 DO
+     20           BEGIN
+     21             PRINT;
+     22             PRINT("NUMERO DE USUARIOS=",N1);
+     23             SOLVE;
+     24  
+     25 &           DEMANDA APARTADO 1
+     26             DCPU:=MSERVICE(CPU)*PROB1(1);
+     27             DDISK:=MSERVICE(DISC)*PROB1(2);
+     28             D:=DDISK+DCPU;
+     29             PRINT("DEMANDA CPU=",DCPU);
+     30             PRINT("DEMANDA DISCO=",DDISK);
+     31             PRINT("DEMANDA TOTAL=",D);
+     32             PRINT("DEMANDA POR USUARIO=",D/N1);
+     33  
+     34 &           TIEMPO DE RESPUESTA DEL SISTEMA :
+     35             R := MRESPONSE(CPU)*PROB1(1)+MRESPONSE(DISC)*PROB1(2);
+     36             RTOTAL := R + MRESPONSE(TERMINAL);
+     37             PRINT("TIEMPO DE RESPUESTA DEL SISTEMA=",R);
+     38             PRINT("TIEMPO DE RESPUESTA TOTAL DEL SISTEMA=",RTOTAL);
+     39             PRINT("TIEMPO DE RESPUESTA DEL CPU=",MRESPONSE(CPU));
+     40             PRINT("TIEMPO DE RESPUESTA DEL DISCO=",MRESPONSE(DISC));
+     41             PRINT("TIEMPO DE RESPUESTA DEL TERMINAL (TIEMPO DE REFLEXION
+)=",MRESPONSE(TERMINAL));
+     42  
+     43  
+     44  
+     45           END;
+ 
+1
+ NUMERO DE USUARIOS=        1 
+ - MEAN VALUE ANALYSIS ("MVA") -
+ *******************************************************************
+ *   NAME   *  SERVICE * BUSY PCT *  CUST NB * RESPONSE *  THRUPUT *
+ *******************************************************************
+ *          *          *          *          *          *          *
+ *CPU       *0.3000E-01*0.2685E-01*0.2685E-01*0.3000E-01*0.8949    *
+ *          *          *          *          *          *          *
+ *DISC      *0.1000    *0.7830E-01*0.7830E-01*0.1000    *0.7830    *
+ *          *          *          *          *          *          *
+ *TERMINAL  * 8.000    *0.0000E+00*0.8949    * 8.000    *0.1119    *
+ *          *          *          *          *          *          *
+ *******************************************************************
+              MEMORY USED:       7104 WORDS OF 4 BYTES
+               (  0.14  % OF TOTAL MEMORY)
+ DEMANDA CPU=  0.2400    
+ DEMANDA DISCO=  0.7000    
+ DEMANDA TOTAL=  0.9400    
+ DEMANDA POR USUARIO=  0.9400    
+ TIEMPO DE RESPUESTA DEL SISTEMA=  0.9400    
+ TIEMPO DE RESPUESTA TOTAL DEL SISTEMA=   8.940    
+ TIEMPO DE RESPUESTA DEL CPU=  0.3000E-01
+ TIEMPO DE RESPUESTA DEL DISCO=  0.1000    
+ TIEMPO DE RESPUESTA DEL TERMINAL (TIEMPO DE REFLEXION)=   8.000    
+ 
+1
+ NUMERO DE USUARIOS=        2 
+ - MEAN VALUE ANALYSIS ("MVA") -
+ *******************************************************************
+ *   NAME   *  SERVICE * BUSY PCT *  CUST NB * RESPONSE *  THRUPUT *
+ *******************************************************************
+ *          *          *          *          *          *          *
+ *CPU       *0.3000E-01*0.5333E-01*0.5476E-01*0.3081E-01* 1.778    *
+ *          *          *          *          *          *          *
+ *DISC      *0.1000    *0.1555    *0.1677    *0.1078    * 1.555    *
+ *          *          *          *          *          *          *
+ *TERMINAL  * 8.000    *0.0000E+00* 1.778    * 8.000    *0.2222    *
+ *          *          *          *          *          *          *
+ *******************************************************************
+              MEMORY USED:       7134 WORDS OF 4 BYTES
+               (  0.14  % OF TOTAL MEMORY)
+ DEMANDA CPU=  0.2400    
+ DEMANDA DISCO=  0.7000    
+ DEMANDA TOTAL=  0.9400    
+ DEMANDA POR USUARIO=  0.4700    
+ TIEMPO DE RESPUESTA DEL SISTEMA=   1.001    
+ TIEMPO DE RESPUESTA TOTAL DEL SISTEMA=   9.001    
+ TIEMPO DE RESPUESTA DEL CPU=  0.3081E-01
+ TIEMPO DE RESPUESTA DEL DISCO=  0.1078    
+ TIEMPO DE RESPUESTA DEL TERMINAL (TIEMPO DE REFLEXION)=   8.000    
+ 
+1
+ NUMERO DE USUARIOS=        3 
+ - MEAN VALUE ANALYSIS ("MVA") -
+ *******************************************************************
+ *   NAME   *  SERVICE * BUSY PCT *  CUST NB * RESPONSE *  THRUPUT *
+ *******************************************************************
+ *          *          *          *          *          *          *
+ *CPU       *0.3000E-01*0.7938E-01*0.8372E-01*0.3164E-01* 2.646    *
+ *          *          *          *          *          *          *
+ *DISC      *0.1000    *0.2315    *0.2703    *0.1168    * 2.315    *
+ *          *          *          *          *          *          *
+ *TERMINAL  * 8.000    *0.0000E+00* 2.646    * 8.000    *0.3307    *
+ *          *          *          *          *          *          *
+ *******************************************************************
+              MEMORY USED:       7164 WORDS OF 4 BYTES
+               (  0.14  % OF TOTAL MEMORY)
+ DEMANDA CPU=  0.2400    
+ DEMANDA DISCO=  0.7000    
+ DEMANDA TOTAL=  0.9400    
+ DEMANDA POR USUARIO=  0.3133    
+ TIEMPO DE RESPUESTA DEL SISTEMA=   1.071    
+ TIEMPO DE RESPUESTA TOTAL DEL SISTEMA=   9.071    
+ TIEMPO DE RESPUESTA DEL CPU=  0.3164E-01
+ TIEMPO DE RESPUESTA DEL DISCO=  0.1168    
+ TIEMPO DE RESPUESTA DEL TERMINAL (TIEMPO DE REFLEXION)=   8.000    
+ 
+1
+ NUMERO DE USUARIOS=        4 
+ - MEAN VALUE ANALYSIS ("MVA") -
+ *******************************************************************
+ *   NAME   *  SERVICE * BUSY PCT *  CUST NB * RESPONSE *  THRUPUT *
+ *******************************************************************
+ *          *          *          *          *          *          *
+ *CPU       *0.3000E-01*0.1049    *0.1137    *0.3251E-01* 3.498    *
+ *          *          *          *          *          *          *
+ *DISC      *0.1000    *0.3060    *0.3888    *0.1270    * 3.060    *
+ *          *          *          *          *          *          *
+ *TERMINAL  * 8.000    *0.0000E+00* 3.498    * 8.000    *0.4372    *
+ *          *          *          *          *          *          *
+ *******************************************************************
+              MEMORY USED:       7194 WORDS OF 4 BYTES
+               (  0.14  % OF TOTAL MEMORY)
+ DEMANDA CPU=  0.2400    
+ DEMANDA DISCO=  0.7000    
+ DEMANDA TOTAL=  0.9400    
+ DEMANDA POR USUARIO=  0.2350    
+ TIEMPO DE RESPUESTA DEL SISTEMA=   1.149    
+ TIEMPO DE RESPUESTA TOTAL DEL SISTEMA=   9.149    
+ TIEMPO DE RESPUESTA DEL CPU=  0.3251E-01
+ TIEMPO DE RESPUESTA DEL DISCO=  0.1270    
+ TIEMPO DE RESPUESTA DEL TERMINAL (TIEMPO DE REFLEXION)=   8.000    
+ 
+1
+ NUMERO DE USUARIOS=        5 
+ - MEAN VALUE ANALYSIS ("MVA") -
+ *******************************************************************
+ *   NAME   *  SERVICE * BUSY PCT *  CUST NB * RESPONSE *  THRUPUT *
+ *******************************************************************
+ *          *          *          *          *          *          *
+ *CPU       *0.3000E-01*0.1299    *0.1446    *0.3341E-01* 4.329    *
+ *          *          *          *          *          *          *
+ *DISC      *0.1000    *0.3788    *0.5261    *0.1389    * 3.788    *
+ *          *          *          *          *          *          *
+ *TERMINAL  * 8.000    *0.0000E+00* 4.329    * 8.000    *0.5412    *
+ *          *          *          *          *          *          *
+ *******************************************************************
+              MEMORY USED:       7224 WORDS OF 4 BYTES
+               (  0.14  % OF TOTAL MEMORY)
+ DEMANDA CPU=  0.2400    
+ DEMANDA DISCO=  0.7000    
+ DEMANDA TOTAL=  0.9400    
+ DEMANDA POR USUARIO=  0.1880    
+ TIEMPO DE RESPUESTA DEL SISTEMA=   1.239    
+ TIEMPO DE RESPUESTA TOTAL DEL SISTEMA=   9.239    
+ TIEMPO DE RESPUESTA DEL CPU=  0.3341E-01
+ TIEMPO DE RESPUESTA DEL DISCO=  0.1389    
+ TIEMPO DE RESPUESTA DEL TERMINAL (TIEMPO DE REFLEXION)=   8.000    
+ 
+1
+ NUMERO DE USUARIOS=        6 
+ - MEAN VALUE ANALYSIS ("MVA") -
+ *******************************************************************
+ *   NAME   *  SERVICE * BUSY PCT *  CUST NB * RESPONSE *  THRUPUT *
+ *******************************************************************
+ *          *          *          *          *          *          *
+ *CPU       *0.3000E-01*0.1541    *0.1764    *0.3434E-01* 5.138    *
+ *          *          *          *          *          *          *
+ *DISC      *0.1000    *0.4495    *0.6860    *0.1526    * 4.495    *
+ *          *          *          *          *          *          *
+ *TERMINAL  * 8.000    *0.0000E+00* 5.138    * 8.000    *0.6422    *
+ *          *          *          *          *          *          *
+ *******************************************************************
+              MEMORY USED:       7254 WORDS OF 4 BYTES
+               (  0.15  % OF TOTAL MEMORY)
+ DEMANDA CPU=  0.2400    
+ DEMANDA DISCO=  0.7000    
+ DEMANDA TOTAL=  0.9400    
+ DEMANDA POR USUARIO=  0.1567    
+ TIEMPO DE RESPUESTA DEL SISTEMA=   1.343    
+ TIEMPO DE RESPUESTA TOTAL DEL SISTEMA=   9.343    
+ TIEMPO DE RESPUESTA DEL CPU=  0.3434E-01
+ TIEMPO DE RESPUESTA DEL DISCO=  0.1526    
+ TIEMPO DE RESPUESTA DEL TERMINAL (TIEMPO DE REFLEXION)=   8.000    
+ 
+1
+ NUMERO DE USUARIOS=        7 
+ - MEAN VALUE ANALYSIS ("MVA") -
+ *******************************************************************
+ *   NAME   *  SERVICE * BUSY PCT *  CUST NB * RESPONSE *  THRUPUT *
+ *******************************************************************
+ *          *          *          *          *          *          *
+ *CPU       *0.3000E-01*0.1775    *0.2089    *0.3529E-01* 5.918    *
+ *          *          *          *          *          *          *
+ *DISC      *0.1000    *0.5178    *0.8731    *0.1686    * 5.178    *
+ *          *          *          *          *          *          *
+ *TERMINAL  * 8.000    *0.0000E+00* 5.918    * 8.000    *0.7398    *
+ *          *          *          *          *          *          *
+ *******************************************************************
+              MEMORY USED:       7284 WORDS OF 4 BYTES
+               (  0.15  % OF TOTAL MEMORY)
+ DEMANDA CPU=  0.2400    
+ DEMANDA DISCO=  0.7000    
+ DEMANDA TOTAL=  0.9400    
+ DEMANDA POR USUARIO=  0.1343    
+ TIEMPO DE RESPUESTA DEL SISTEMA=   1.463    
+ TIEMPO DE RESPUESTA TOTAL DEL SISTEMA=   9.463    
+ TIEMPO DE RESPUESTA DEL CPU=  0.3529E-01
+ TIEMPO DE RESPUESTA DEL DISCO=  0.1686    
+ TIEMPO DE RESPUESTA DEL TERMINAL (TIEMPO DE REFLEXION)=   8.000    
+ 
+1
+ NUMERO DE USUARIOS=        8 
+ - MEAN VALUE ANALYSIS ("MVA") -
+ *******************************************************************
+ *   NAME   *  SERVICE * BUSY PCT *  CUST NB * RESPONSE *  THRUPUT *
+ *******************************************************************
+ *          *          *          *          *          *          *
+ *CPU       *0.3000E-01*0.2000    *0.2417    *0.3627E-01* 6.666    *
+ *          *          *          *          *          *          *
+ *DISC      *0.1000    *0.5833    * 1.092    *0.1873    * 5.833    *
+ *          *          *          *          *          *          *
+ *TERMINAL  * 8.000    *0.0000E+00* 6.666    * 8.000    *0.8332    *
+ *          *          *          *          *          *          *
+ *******************************************************************
+              MEMORY USED:       7314 WORDS OF 4 BYTES
+               (  0.15  % OF TOTAL MEMORY)
+ DEMANDA CPU=  0.2400    
+ DEMANDA DISCO=  0.7000    
+ DEMANDA TOTAL=  0.9400    
+ DEMANDA POR USUARIO=  0.1175    
+ TIEMPO DE RESPUESTA DEL SISTEMA=   1.601    
+ TIEMPO DE RESPUESTA TOTAL DEL SISTEMA=   9.601    
+ TIEMPO DE RESPUESTA DEL CPU=  0.3627E-01
+ TIEMPO DE RESPUESTA DEL DISCO=  0.1873    
+ TIEMPO DE RESPUESTA DEL TERMINAL (TIEMPO DE REFLEXION)=   8.000    
+ 
+1
+ NUMERO DE USUARIOS=        9 
+ - MEAN VALUE ANALYSIS ("MVA") -
+ *******************************************************************
+ *   NAME   *  SERVICE * BUSY PCT *  CUST NB * RESPONSE *  THRUPUT *
+ *******************************************************************
+ *          *          *          *          *          *          *
+ *CPU       *0.3000E-01*0.2212    *0.2747    *0.3725E-01* 7.375    *
+ *          *          *          *          *          *          *
+ *DISC      *0.1000    *0.6453    * 1.350    *0.2092    * 6.453    *
+ *          *          *          *          *          *          *
+ *TERMINAL  * 8.000    *0.0000E+00* 7.375    * 8.000    *0.9219    *
+ *          *          *          *          *          *          *
+ *******************************************************************
+              MEMORY USED:       7344 WORDS OF 4 BYTES
+               (  0.15  % OF TOTAL MEMORY)
+ DEMANDA CPU=  0.2400    
+ DEMANDA DISCO=  0.7000    
+ DEMANDA TOTAL=  0.9400    
+ DEMANDA POR USUARIO=  0.1044    
+ TIEMPO DE RESPUESTA DEL SISTEMA=   1.763    
+ TIEMPO DE RESPUESTA TOTAL DEL SISTEMA=   9.763    
+ TIEMPO DE RESPUESTA DEL CPU=  0.3725E-01
+ TIEMPO DE RESPUESTA DEL DISCO=  0.2092    
+ TIEMPO DE RESPUESTA DEL TERMINAL (TIEMPO DE REFLEXION)=   8.000    
+ 
+1
+ NUMERO DE USUARIOS=       10 
+ - MEAN VALUE ANALYSIS ("MVA") -
+ *******************************************************************
+ *   NAME   *  SERVICE * BUSY PCT *  CUST NB * RESPONSE *  THRUPUT *
+ *******************************************************************
+ *          *          *          *          *          *          *
+ *CPU       *0.3000E-01*0.2412    *0.3074    *0.3824E-01* 8.039    *
+ *          *          *          *          *          *          *
+ *DISC      *0.1000    *0.7034    * 1.653    *0.2350    * 7.034    *
+ *          *          *          *          *          *          *
+ *TERMINAL  * 8.000    *0.0000E+00* 8.039    * 8.000    * 1.005    *
+ *          *          *          *          *          *          *
+ *******************************************************************
+              MEMORY USED:       7374 WORDS OF 4 BYTES
+               (  0.15  % OF TOTAL MEMORY)
+ DEMANDA CPU=  0.2400    
+ DEMANDA DISCO=  0.7000    
+ DEMANDA TOTAL=  0.9400    
+ DEMANDA POR USUARIO=  0.9400E-01
+ TIEMPO DE RESPUESTA DEL SISTEMA=   1.951    
+ TIEMPO DE RESPUESTA TOTAL DEL SISTEMA=   9.951    
+ TIEMPO DE RESPUESTA DEL CPU=  0.3824E-01
+ TIEMPO DE RESPUESTA DEL DISCO=  0.2350    
+ TIEMPO DE RESPUESTA DEL TERMINAL (TIEMPO DE REFLEXION)=   8.000    
+     46 /END/
+
+
+
+# a. Programad el cálculo de las demandas de los 2 dispositivos, y la demanda
+total (D) y su impresión. ¿Cuál es el cuello de botella (Db)? ¿Cuál es el punto 
+de saturación (N*)? Imprimid todas esas variables.
+
+En los resultados podemos ver que el dispositivo con mayor demanda es el disco
+con una demanda de 0.7, por lo tanto el cuello de botella del distema es el 
+disco. Para saber el punto de saturación aplicamos la siguiente fórmula 
+N* = ceil((D + Z) / Db) -> N* = ceil((0.94 + 8) / 0.7) = 13.
+
+# b. Programad el cálculo del tiempo de respuesta del sistema (R) y el tiempo
+TOTAL (R+Z), así como el número de usuarios trabajando y reflexionando 
+(imprimid los valores)
+
+Los valores calculados se puede apreciar en el output del qnap.
