@@ -1,0 +1,66 @@
+ 
+  SIMULOG   ***  QNAP2  ***  ( 28-02-1999  ) V 9.4   
+  (C)  COPYRIGHT BY CII HONEYWELL BULL AND INRIA, 1986
+ 
+ 
+      1 /DECLARE/ QUEUE CPU,DISC(2),TERMINAL;
+      2           REAL PROB1(2)=(3.5,3.5);
+      3           REAL D,DCPU,DDISK1,DDISK2;
+      4           REAL R, RTOTAL;
+      5           INTEGER I,N1;
+      6 /STATION/ NAME=CPU;
+      7 &         SCHED=PS;
+      8           SERVICE=EXP(0.03);
+      9           TRANSIT=DISC,PROB1,TERMINAL,1;
+     10 /STATION/ NAME=DISC;
+     11           TRANSIT=CPU;
+     12 /STATION/ NAME=DISC(1);
+     13           SERVICE=EXP(0.1);
+     14 /STATION/ NAME=DISC(2);
+     15           SERVICE=EXP(0.1);
+     16 /STATION/ NAME=TERMINAL;
+     17           TYPE=INFINITE;
+     18           INIT=N1;
+     19           SERVICE=EXP(8.);
+     20           TRANSIT=CPU,8.;
+     21 /CONTROL/ CLASS=ALL QUEUE;
+     22 /EXEC/    FOR N1:=1 STEP 1 UNTIL 30 DO
+     23           BEGIN
+     24             PRINT;
+     25             PRINT("NUMERO DE USUARIOS=",N1);
+     26             SOLVE;
+     27  
+     28 &           DEMANDA APARTADO 1
+     29             DCPU:=MSERVICE(CPU)*8.;
+     30             DDISK1:=MSERVICE(DISC(1))*PROB1(1);
+     31 	    DDISK2:=MSERVICE(DISC(2))*PROB1(2);
+     32 	    D:=DDISK+DCPU;
+                    |
+ (050206)  ==>ERROR (COMPILE) : THIS IDENTIFIER HAS NOT BEEN DECLARED ...
+                                OR IS NOT KNOWN IN THIS CONTEXT ... DDISK
+     33             PRINT("DEMANDA CPU=",DCPU);
+     34             PRINT("DEMANDA DISCO1=",DDISK1);
+     35 	    PRINT("DEMANDA DISCO2=",DDISK2);
+     36             PRINT("DEMANDA TOTAL=",D);
+     37             PRINT("DEMANDA POR USUARIO=",D/N1);
+     38  
+     39 &           TIEMPO DE RESPUESTA DEL SISTEMA :
+     40             R := MRESPONSE(CPU)*8+MRESPONSE(DISC(1))*PROB1(1) + MRESPONS
+E(DISC(2))*PROB1(2);
+     41             RTOTAL := R + MRESPONSE(TERMINAL);
+     42             PRINT("TIEMPO DE RESPUESTA DEL SISTEMA=",R);
+     43             PRINT("TIEMPO DE RESPUESTA TOTAL DEL SISTEMA=",RTOTAL);
+     44             PRINT("TIEMPO DE RESPUESTA DEL CPU=",MRESPONSE(CPU));
+     45             PRINT("TIEMPO DE RESPUESTA DEL DISCO 1=",MRESPONSE(DISC(1)))
+;
+     46             PRINT("TIEMPO DE RESPUESTA DEL DISCO 2=",MRESPONSE(DISC(2)))
+;
+     47             PRINT("TIEMPO DE RESPUESTA DEL TERMINAL (TIEMPO DE REFLEXION
+)=",MRESPONSE(TERMINAL));
+     48  
+     49  
+     50  
+     51           END;
+ (0J0H06)                     ... NO EXECUTION
+ (0J0H01)                     ... SKIP TO NEXT COMMAND
+     52 /END/
